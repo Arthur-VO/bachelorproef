@@ -39,7 +39,7 @@ Ondanks deze risico's ontbreekt het security teams vaak aan de middelen om MCP-i
 %Schrijf ook iets over de doelstelling. Wat zie je als het concrete eindresultaat van je onderzoek, naast de uitgeschreven scriptie? Is het een proof-of-concept, een rapport met aanbevelingen, \ldots Met welk eindresultaat kan je je bachelorproef als een succes beschouwen?
 %
 
-\newpage
+
 \section{Probleemstelling}
 \label{sec:probleemstelling}
 
@@ -143,18 +143,130 @@ Je mag deze sectie nog verder onderverdelen in subsecties als dit de structuur v
 \section{Methodologie}%
 \label{sec:methodologie}
 
-Hier beschrijf je hoe je van plan bent het onderzoek te voeren. Welke onderzoekstechniek ga je toepassen om elk van je onderzoeksvragen te beantwoorden? Gebruik je hiervoor literatuurstudie, interviews met belanghebbenden (bv.~voor requirements-analyse), experimenten, simulaties, vergelijkende studie, risico-analyse, PoC, \ldots?
+In dit hoofdstuk wordt de werkwijze uiteengezet die gehanteerd wordt om de onderzoeksvraag te beantwoorden: \emph{"Hoe kan een geautomatiseerd security assessment framework ontworpen worden voor MCP-server implementaties?"} Het onderzoek betreft een \textbf{ontwerpgerichte studie} (design science research) waarbij de ontwikkeling van een technisch artefact (het security framework) centraal staat. Dit wordt gecombineerd met een vergelijkende studie om de effectiviteit te toetsen.
 
-Valt je onderwerp onder één van de typische soorten bachelorproeven die besproken zijn in de lessen Research Methods (bv.\ vergelijkende studie of risico-analyse)? Zorg er dan ook voor dat we duidelijk de verschillende stappen terug vinden die we verwachten in dit soort onderzoek!
+Om objectieve en meetbare resultaten te garanderen, worden subjectieve methoden zoals enquêtes vermeden. In plaats daarvan wordt gekozen voor experimentele validatie aan de hand van kwantitatieve metrieken. Figuur~\ref{fig:methodologie_flow} geeft een schematisch overzicht van de doorlopen fasen.
 
-Vermijd onderzoekstechnieken die geen objectieve, meetbare resultaten kunnen opleveren. Enquêtes, bijvoorbeeld, zijn voor een bachelorproef informatica meestal \textbf{niet geschikt}. De antwoorden zijn eerder meningen dan feiten en in de praktijk blijkt het ook bijzonder moeilijk om voldoende respondenten te vinden. Studenten die een enquête willen voeren, hebben meestal ook geen goede definitie van de populatie, waardoor ook niet kan aangetoond worden dat eventuele resultaten representatief zijn.
+% --- TIKZ FLOWCHART ---
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[node distance=1.5cm]
+    % Stijlen definiëren
+    \tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=red!30]
+    \tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=orange!30]
+    \tikzstyle{io} = [trapezium, trapezium left angle=70, trapezium right angle=110, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=blue!30]
+    \tikzstyle{arrow} = [thick,->,>=stealth]
 
-Uit dit onderdeel moet duidelijk naar voor komen dat je bachelorproef ook technisch voldoen\-de diepgang zal bevatten. Het zou niet kloppen als een bachelorproef informatica ook door bv.\ een student marketing zou kunnen uitgevoerd worden.
+    % Knopen plaatsen
+    \node (lit) [startstop] {1. Literatuurstudie \& Analyse};
+    \node (req) [process, below of=lit] {2. Requirements Analyse (Fintech)};
+    \node (design) [process, below of=req] {3. Ontwerp Framework \& Prototype};
+    \node (poc) [process, below of=design] {4. Implementatie 'Goat' Server};
+    \node (test) [process, below of=poc] {5. Validatie \& Benchmarking};
+    \node (concl) [startstop, below of=test] {6. Conclusie \& Aanbevelingen};
 
-Je beschrijft ook al welke tools (hardware, software, diensten, \ldots) je denkt hiervoor te gebruiken of te ontwikkelen.
+    % Pijlen trekken
+    \draw [arrow] (lit) -- (req);
+    \draw [arrow] (req) -- (design);
+    \draw [arrow] (design) -- (poc);
+    \draw [arrow] (poc) -- (test);
+    \draw [arrow] (test) -- (concl);
+    
+    % Feedback loop
+    \draw [arrow] (test.east) -- ++(1,0) |- (design.east) node[pos=0.25, right] {Iteratieve verbetering};
 
-Probeer ook een tijdschatting te maken. Hoe lang zal je met elke fase van je onderzoek bezig zijn en wat zijn de concrete \emph{deliverables} in elke fase?
+\end{tikzpicture}
+\caption{Schematische weergave van de onderzoeksstappen.}
+\label{fig:methodologie_flow}
+\end{figure}
 
+\subsection{Fase 1: Literatuurstudie en classificatie van dreigingen}
+
+\textbf{Onderzoekstechniek:} Literatuurstudie. \\
+Het onderzoek start met een diepgaande analyse van de technische specificaties van het Model Context Protocol (MCP). Er wordt gebruikgemaakt van academische databanken (zoals Google Scholar, IEEE Xplore en arXiv) en officiële technische documentatie om de architectuur en datastromen te doorgronden. Specifiek wordt gezocht naar bestaande taxonomieën van AI-kwetsbaarheden (zoals de OWASP Top 10 voor LLM's) en hoe deze zich vertalen naar de MCP-context.
+
+\textbf{Doel:} Het opstellen van een specifieke taxonomie van kwetsbaarheden (zoals prompt injection, tool poisoning en privilege escalation) die relevant zijn voor de financiële sector. 
+
+\textbf{Tools:} Zotero voor referentiebeheer, LaTeX voor documentatie. \\
+\textbf{Tijdschatting:} 4 weken. \\
+\textbf{Deliverable:} Hoofdstuk 'Literatuurstudie' met een gedefinieerd dreigingsmodel.
+
+\subsection{Fase 2: Requirementsanalyse voor Fintech-toepassingen}
+
+\textbf{Onderzoekstechniek:} Documentanalyse en functionele analyse. \\
+In plaats van interviews of enquêtes, die subjectieve meningen opleveren, wordt er gekeken naar harde compliance-eisen uit de financiële sector (zoals PCI-DSS en GDPR) en best practices voor API-security. Op basis hiervan worden de functionele en niet-functionele vereisten (zoals logging, auditability en toegangscontrole) voor de scanner vastgelegd volgens de MoSCoW-methode.
+
+\textbf{Doel:} Een objectieve lijst van criteria opstellen waaraan het te ontwikkelen framework moet voldoen om inzetbaar te zijn in een enterprise-omgeving.
+
+\textbf{Tools:} Requirements management templates. \\
+\textbf{Tijdschatting:} 2 weken. \\
+\textbf{Deliverable:} Een geprioriteerde lijst van requirements.
+
+\subsection{Fase 3: Ontwerp en implementatie van het assessment framework}
+
+\textbf{Onderzoekstechniek:} Prototyping en iteratieve softwareontwikkeling (PoC). \\
+Dit is de technisch meest complexe fase waarin het artefact daadwerkelijk wordt gebouwd. De scanner wordt modulair opgezet om flexibiliteit te garanderen. De technische realisatie gebeurt in Python vanwege de uitgebreide ondersteuning voor JSON-RPC en asynchrone communicatie, essentieel voor MCP.
+
+Het framework bestaat uit drie kerncomponenten:
+\begin{enumerate}
+    \item \textbf{Discovery Module:} Analyseert de \texttt{list\_tools} en \texttt{list\_prompts} endpoints.
+    \item \textbf{Static Analysis Engine:} Scant tool-beschrijvingen op onveilige patronen.
+    \item \textbf{Dynamic Probing Engine:} Voert actieve fuzzing uit met gemanipuleerde payloads.
+\end{enumerate}
+
+\textbf{Tools:} Python 3.12+, Docker (voor containerisatie), Git (versiebeheer), Pydantic (data validatie), `mcp`-library. \\
+\textbf{Tijdschatting:} 6 weken. \\
+\textbf{Deliverable:} Een werkende Proof of Concept (PoC) van de scanner, gepubliceerd als open-source code op GitHub.
+
+\subsection{Fase 4: Validatie via een 'Vulnerable MCP Server'}
+
+\textbf{Onderzoekstechniek:} Experimentele validatie en vergelijkende studie. \\
+Omdat er weinig publieke testdata is, wordt een eigen testomgeving ontwikkeld: de 'Fintech MCP Goat'. Dit is een opzettelijk onveilige MCP-server die financiële use-cases nabootst (bv. saldo opvragen, overschrijving starten). 
+
+Deze omgeving dient als 'ground truth'. De effectiviteit van de scanner wordt gemeten door deze los te laten op de 'Goat' server en de resultaten te vergelijken met de bekende kwetsbaarheden. De validatie is puur kwantitatief:
+\begin{itemize}
+    \item \textbf{Detectieratio (Recall):} $\frac{\text{Aantal gevonden kwetsbaarheden}}{\text{Totaal aantal aanwezige kwetsbaarheden}}$
+    \item \textbf{False Positive Rate:} Aantal onterechte alarmen.
+    \item \textbf{Performance:} Scan-tijd in milliseconden.
+\end{itemize}
+
+\textbf{Tools:} Docker Compose (voor het opzetten van de testlab), Pytest (voor geautomatiseerde testsuites), Burp Suite (voor manuele verificatie van bevindingen). \\
+\textbf{Tijdschatting:} 3 weken. \\
+\textbf{Deliverable:} Validatierapport met meetresultaten en een analyse van de nauwkeurigheid.
+
+\subsection{Overzichtstabel Planning}
+
+Tabel~\ref{tab:planning} geeft een samenvattend overzicht van de fasering en deliverables.
+
+\begin{table}[htbp]
+\centering
+\caption{Planning en deliverables per onderzoeksfase.}
+\label{tab:planning}
+\begin{tabular}{@{}llp{6cm}@{}}
+\toprule
+\textbf{Fase} & \textbf{Duur} & \textbf{Deliverable} \\ \midrule
+1. Literatuurstudie & 4 weken & Dreigingsmodel \& State-of-the-art \\
+2. Requirements & 2 weken & Requirementslijst (MoSCoW) \\
+3. Implementatie & 6 weken & Python Framework (GitHub repo) \\
+4. Validatie & 3 weken & Validatierapport \& Testresultaten \\
+5. Conclusie & 2 weken & Finaliseren Bachelorproef tekst \\ \bottomrule
+\end{tabular}
+\end{table}
+
+%Hier beschrijf je hoe je van plan bent het onderzoek te voeren. Welke onderzoekstechniek ga je toepassen om elk van je onderzoeksvragen te beantwoorden? Gebruik je hiervoor literatuurstudie, interviews met belanghebbenden (bv.~voor requirements-analyse), experimenten, simulaties, vergelijkende studie, risico-analyse, PoC, \ldots?
+%
+%Valt je onderwerp onder één van de typische soorten bachelorproeven die besproken zijn in de lessen Research Methods (bv.\ vergelijkende studie of risico-analyse)? Zorg er dan ook voor dat we duidelijk de verschillende stappen terug vinden die we verwachten in dit soort onderzoek!
+%
+%Vermijd onderzoekstechnieken die geen objectieve, meetbare resultaten kunnen opleveren. Enquêtes, bijvoorbeeld, zijn voor een bachelorproef informatica meestal \textbf{niet geschikt}. De antwoorden zijn eerder meningen dan feiten en in de praktijk blijkt het ook bijzonder moeilijk om voldoende respondenten te vinden. Studenten die een enquête willen voeren, hebben meestal ook geen goede definitie van de populatie, waardoor ook niet kan aangetoond worden dat eventuele resultaten representatief zijn.
+%
+%Uit dit onderdeel moet duidelijk naar voor komen dat je bachelorproef ook technisch voldoen\-de diepgang zal bevatten. Het zou niet kloppen als een bachelorproef informatica ook door bv.\ een student marketing zou kunnen uitgevoerd worden.
+%
+%Je beschrijft ook al welke tools (hardware, software, diensten, \ldots) je denkt hiervoor te gebruiken of te ontwikkelen.
+%
+%Probeer ook een tijdschatting te maken. Hoe lang zal je met elke fase van je onderzoek bezig zijn en wat zijn de concrete \emph{deliverables} in elke fase?
+%
+
+\newpage
 %---------- Verwachte resultaten ----------------------------------------------
 \section{Verwacht resultaat, conclusie}%
 \label{sec:verwachte_resultaten}
