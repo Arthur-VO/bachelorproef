@@ -38,21 +38,98 @@ Ondanks deze risico's ontbreekt het security teams vaak aan de middelen om MCP-i
 %
 %Schrijf ook iets over de doelstelling. Wat zie je als het concrete eindresultaat van je onderzoek, naast de uitgeschreven scriptie? Is het een proof-of-concept, een rapport met aanbevelingen, \ldots Met welk eindresultaat kan je je bachelorproef als een succes beschouwen?
 %
+
+\newpage
+\section{Probleemstelling}
+\label{sec:probleemstelling}
+
+Het kernprobleem is dat Fintech-bedrijven momenteel geen gestructureerde en geautomatiseerde manier hebben om MCP-servers op kritieke veiligheidskwetsbaarheden te controleren vóór live-gang.
+
+\begin{itemize}
+    \item \textbf{Huidige situatie (Status Quo):} Security teams zijn aangewezen op handmatige code reviews, wat een bottleneck vormt en vaak onvolledig is. Er wordt gebruikgemaakt van ad-hoc tools zoals Burp Suite of Semgrep, maar deze missen specifieke context voor MCP-gerelateerde aanvallen.
+    \item \textbf{Specifieke risico's:} Zonder degelijke screening zijn servers kwetsbaar voor:
+    \begin{itemize}
+        \item \emph{Prompt injection attacks} via manipulatie van tool-beschrijvingen.
+        \item \emph{Token theft \& privilege escalation}, waarbij agents te brede rechten krijgen.
+        \item \emph{Tool poisoning}, waarbij kwaadaardige instructies in data worden verstopt.
+        \item \emph{Confused deputy attacks}, omdat servers vaak geen onderscheid maken tussen gebruikers.
+        \item Gebrek aan \emph{audit logging}, waardoor acties niet traceerbaar zijn.
+    \end{itemize}
+    \item \textbf{Doelgroep:} Het onderzoek richt zich op security teams, DevSecOps-engineers en enterprise architects binnen Fintech, e-commerce en andere gereguleerde industrieën.
+\end{itemize}
+
+\section{Doelstelling}
+\label{sec:doelstelling}
+
+Het doel van deze bachelorproef is het ontwerpen, ontwikkelen en valideren van een geautomatiseerd security assessment framework voor MCP-servers.
+Concreet worden de volgende resultaten beoogd:
+\begin{enumerate}
+    \item Een werkend prototype (Proof-of-Concept) van de security scanner.
+    \item Een validatie van de effectiviteit van dit framework ten opzichte van handmatige reviews (detectiegraad en tijdsbesparing).
+    \item Een set aanbevelingen voor de veilige implementatie van MCP in bedrijfsomgevingen.
+\end{enumerate}
+
+\section{Onderzoeksvragen}
+\label{sec:onderzoeksvragen}
+
+\paragraph{Hoofdvraag}
+Hoe kan een geautomatiseerd security assessment framework ontworpen en geïmplementeerd worden om MCP-server implementaties in bedrijfsomgevingen systematischer en efficiënter te screenen op kritieke kwetsbaarheden dan de huidige handmatige processen?
+
+\paragraph{Deelvragen Probleemdomein}
+\begin{enumerate}
+    \item Hoeveel van de top 10 MCP-kwetsbaarheden worden momenteel gedetecteerd door handmatige security reviews binnen fintech-bedrijven?
+    \item Wat is het percentage MCP-implementaties in enterprises die kwetsbaar zijn voor prompt injection attacks, zoals vastgesteld door recent gepubliceerde onderzoeken?
+    \item Hoe vaak leiden MCP-gerelateerde kwetsbaarheden in de praktijk tot datalekken of frauduleuze transacties (incidentratio in de laatste 24 maanden)?
+    \item Hoeveel tijd besteden security teams gemiddeld aan het handmatig screenen van MCP-server code?
+    \item Wat is het percentage false negatives bij bestaande handmatige controles?
+\end{enumerate}
+
+\paragraph{Deelvragen Oplossingsdomein}
+\begin{enumerate}
+    \item Hoeveel procent van de MCP-kwetsbaarheden kan een geautomatiseerde tool detecteren in vergelijking met handmatige reviews?
+    \item Wat is de gemiddelde tijdsbesparing bij het scannen van MCP-servers door een geautomatiseerde pipeline?
+    \item Wat is het percentage false positives/negatives bij gebruik van SAST, DAST en fuzzing op MCP-implementaties?
+    \item Hoeveel MCP-servers kunnen effectief per dag worden gescand met het voorgestelde framework?
+    \item Hoe verbeteren geprioriteerde rapporten de reactietijd van security teams?
+\end{enumerate}
+
+
 %---------- Stand van zaken ---------------------------------------------------
 
 \section{Literatuurstudie}%
 \label{sec:literatuurstudie}
 
-Hier beschrijf je de \emph{state-of-the-art} rondom je gekozen onderzoeksdomein, d.w.z.\ een inleidende, doorlopende tekst over het onderzoeksdomein van je bachelorproef. Je steunt daarbij heel sterk op de professionele \emph{vakliteratuur}, en niet zozeer op populariserende teksten voor een breed publiek. Wat is de huidige stand van zaken in dit domein, en wat zijn nog eventuele open vragen (die misschien de aanleiding waren tot je onderzoeksvraag!)?
+In dit hoofdstuk wordt de \emph{state-of-the-art} beschreven rondom de beveiliging van het Model Context Protocol (MCP), specifiek binnen de context van financiële technologie (fintech). De focus ligt hierbij op de bekende kwetsbaarheden van AI-agents en de beperkingen van huidige detectiemethoden.
 
-Je mag de titel van deze sectie ook aanpassen (literatuurstudie, stand van zaken, enz.). Zijn er al gelijkaardige onderzoeken gevoerd? Wat concluderen ze? Wat is het verschil met jouw onderzoek?
+\subsection{Opkomst en risico's van MCP in Fintech}
 
-Verwijs bij elke introductie van een term of bewering over het domein naar de vakliteratuur, bijvoorbeeld~\autocite{Hykes2013}! Denk zeker goed na welke werken je refereert en waarom.
+De integratie van AI-agents in de financiële sector, voor toepassingen variërend van klantenservice tot transactieverwerking, steunt in toenemende mate op gestandaardiseerde protocollen. Het Model Context Protocol (MCP) fungeert hierbij als een kritieke brug tussen AI-modellen en bedrijfsapplicaties met toebehorende data. Hoewel deze standaardisatie integratie vergemakkelijkt, hebben \textcite{song2025protocolunveilingattackvectors} aangetoond dat het ecosysteem hierdoor nieuwe aanvalsvectoren introduceert die verder reiken dan het protocol zelf.
 
-Draag zorg voor correcte literatuurverwijzingen! Een bronvermelding hoort thuis \emph{binnen} de zin waar je je op die bron baseert, dus niet er buiten! Maak meteen een verwijzing als je gebruik maakt van een bron. Doe dit dus \emph{niet} aan het einde van een lange paragraaf. Baseer nooit teveel aansluitende tekst op eenzelfde bron.
+De complexiteit van deze implementaties brengt specifieke beveiligingsrisico's met zich mee. Uit een systematische analyse door \textcite{guo2025systematicanalysismcpsecurity} blijkt dat MCP-implementaties vatbaar zijn voor diverse fundamentele kwetsbaarheden, waaronder \emph{prompt injection} via tool-beschrijvingen en \emph{privilege escalation}. In de praktijk kunnen kwaadwillenden deze zwakheden exploiteren. Zo beschrijven \textcite{Cato2025} in hun onderzoek naar "Living off AI"-aanvallen hoe MCP-servers gemanipuleerd kunnen worden omdat ze onvoldoende onderscheid maken tussen legitieme gebruikers en externe actoren, ook wel bekend als de \emph{confused deputy} aanval.
 
-Als je informatie over bronnen verzamelt in JabRef, zorg er dan voor dat alle nodige info aanwezig is om de bron terug te vinden (zoals uitvoerig besproken in de lessen Research Methods).
+\subsection{Classificatie van kwetsbaarheden}
 
+Om de veelheid aan risico's te categoriseren, zijn er initiatieven gestart om de meest kritieke lekken in kaart te brengen. \textcite{OWASP2025} hebben een lijst van de "Top 10 MCP vulnerabilities" opgesteld, waarin onder andere \emph{tool poisoning} en het gebrek aan adequate audit logging als prominente risico's worden bestempeld. Voor fintech-bedrijven, die met gevoelige persoons- en transactiegegevens werken, vormen deze specifieke kwetsbaarheden een direct risico op datalekken en compliance-schendingen.
+
+\subsection{Status Quo: Beperkingen van handmatige validatie}
+
+Ondanks de ernst van de dreigingen, ontbreekt het momenteel gestandaardiseerde methodologieën voor validatie. De huidige praktijk in het bedrijfsleven leunt sterk op handmatige en herhaalde code reviews en het gebruik van ad-hoc tools. \textcite{Uproot2025} bieden weliswaar handleidingen voor het uitvoeren van MCP-pentests, maar deze processen blijven arbeidsintensief en foutgevoelig, wat het tijdsaspect dus niet positief beïnvloedt.
+
+Bestaande tools bieden slechts gedeeltelijke oplossingen. Hoewel er open-source initiatieven zijn, zoals de scanning tool van \textcite{Invariant2025}, ontbreekt vaak een integratie in een breder security framework dat geschikt is voor enterprise-omgevingen. Bedrijven vallen hierdoor vaak terug op algemene tools zoals Burp Suite of Semgrep die de context-specifieke logica van MCP niet volledig begrijpen. Dit leidt tot een situatie waarin, volgens marktobservaties, een aanzienlijk deel van de deployments live gaat met niet-gedetecteerde veiligheidslekken.
+
+Het ontbreken van een geautomatiseerd, gestructureerd framework dat specifiek is ontworpen voor de nuances van MCP-servers, vormt het centrale onderwerp in de huidige literatuur en praktijk. Dit onderzoek beoogt dit gat te dichten door een dergelijk framework te ontwerpen en de effectiviteit hiervan te evalueren.
+
+
+%Hier beschrijf je de \emph{state-of-the-art} rondom je gekozen onderzoeksdomein, d.w.z.\ een inleidende, doorlopende tekst over het onderzoeksdomein van je bachelorproef. Je steunt daarbij heel sterk op de professionele \emph{vakliteratuur}, en niet zozeer op populariserende teksten voor een breed publiek. Wat is de huidige stand van zaken in dit domein, en wat zijn nog eventuele open vragen (die misschien de aanleiding waren tot je onderzoeksvraag!)?
+%
+%Je mag de titel van deze sectie ook aanpassen (literatuurstudie, stand van zaken, enz.). Zijn er al gelijkaardige onderzoeken gevoerd? Wat concluderen ze? Wat is het verschil met jouw onderzoek?
+%
+%Verwijs bij elke introductie van een term of bewering over het domein naar de vakliteratuur, bijvoorbeeld~\autocite{Hykes2013}! Denk zeker goed na welke werken je refereert en waarom.
+%
+%Draag zorg voor correcte literatuurverwijzingen! Een bronvermelding hoort thuis \emph{binnen} de zin waar je je op die bron baseert, dus niet er buiten! Maak meteen een verwijzing als je gebruik maakt van een bron. Doe dit dus \emph{niet} aan het einde van een lange paragraaf. Baseer nooit teveel aansluitende tekst op eenzelfde bron.
+%
+%Als je informatie over bronnen verzamelt in JabRef, zorg er dan voor dat alle nodige info aanwezig is om de bron terug te vinden (zoals uitvoerig besproken in de lessen Research Methods).
+%
 % Voor literatuurverwijzingen zijn er twee belangrijke commando's:
 % \autocite{KEY} => (Auteur, jaartal) Gebruik dit als de naam van de auteur
 %   geen onderdeel is van de zin.
