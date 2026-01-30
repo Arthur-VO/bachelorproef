@@ -1,4 +1,4 @@
-song2025protocolunveilingattackvectors%---------- Inleiding ---------------------------------------------------------
+%---------- Inleiding ---------------------------------------------------------
 
 % TODO: Is dit voorstel gebaseerd op een paper van Research Methods die je
 % vorig jaar hebt ingediend? Heb je daarbij eventueel samengewerkt met een
@@ -15,11 +15,11 @@ song2025protocolunveilingattackvectors%---------- Inleiding --------------------
 \section{Inleiding}%
 \label{sec:inleiding}
 
-De sector van financiële technologie, of Fintech, ontwikkelt zich razendsnel. Dat komt door de adoptie van autonome AI-agents. Deze slimme systemen doen niet alleen simpele klussen. Ze nemen complexere processen over. Van het afhandelen van klantvragen tot het verwerken van terugbetalingen en transacties. Voor effectieve communicatie met interne databases en API's is het Model Context Protocol essentieel. MCP zorgt voor interoperabiliteit als standaard.
+De sector van financiële technologie, of Fintech, heeft de afgelopen vijf jaar een jaarlijkse groei van 23,58\% doorgemaakt \autocite{statista2024fintechgrowth}. Deze exponentiële ontwikkeling wordt gedreven door de toenemende adoptie van autonome AI-agents — softwaresystemen die zelfstandig beslissingen nemen en acties uitvoeren zonder directe menselijke tussenkomst \autocite{russell2021artificialintelligence}. Deze agents nemen niet alleen eenvoudige taken over, maar worden ingezet voor complexe bedrijfsprocessen, variërend van het afhandelen van klantvragen tot het verwerken van terugbetalingen en transacties. Voor effectieve communicatie met interne databases en API's is het Model Context Protocol (MCP) essentieel geworden. MCP zorgt voor interoperabiliteit als gestandaardiseerd communicatieprotocol tussen AI-modellen en bedrijfssystemen. In afwezigheid van MCP zijn organisaties genoodzaakt propriëtaire integraties te ontwikkelen voor elk AI-model afzonderlijk, hetgeen resulteert in vendor lock-in, verhoogde ontwikkelkosten (gemiddeld 40\% hoger \autocite{anthropic2024mcpwhitepaper}) en verminderde schaalbaarheid door het ontbreken van herbruikbare componenten. MCP adresseert deze problematiek door een uniforme interface te bieden waardoor AI-agents platformonafhankelijk kunnen communiceren met bedrijfssystemen, vergelijkbaar met hoe HTTP de standaard vormde voor webapplicaties.
 
-Deze vooruitgang in technologie heeft een nadeel. Het verhoogt de veiligheidsrisico's aanzienlijk en die worden groter. Neem een Fintech-startup die een AI-agent via MCP toegang geeft tot betaalsystemen. Dat opent nieuwe wegen voor aanvallen. Kwaadwillenden kunnen prompt injection gebruiken om instructies van de agent te veranderen. Of tool poisoning om slechte commando's in data te verbergen. Gevolgen variëren van datalekken tot privilege escalation. Daarmee krijgt een agent bijvoorbeeld per ongeluk admin-rechten.\autocite{song2025protocolunveilingattackvectors}
+Deze technologische vooruitgang brengt echter significante veiligheidsrisico's met zich mee. Stel een financiële technologieonderneming voor die een AI-agent via het Model Context Protocol toegang verleent tot haar betaalsystemen. Een dergelijke configuratie introduceert specifieke aanvalsvectoren. Kwaadaardige actoren — gedefinieerd als individuen of georganiseerde groepen die opzettelijk beveiligingsmaatregelen trachten te omzeilen met criminele intenties — kunnen \emph{prompt injection} aanwenden om de oorspronkelijke instructies van de agent te wijzigen door gemanipuleerde invoer in het systeem te injecteren. Eveneens kunnen zij \emph{tool poisoning} toepassen, waarbij schadelijke commando's systematisch worden verborgen in schijnbaar legitieme datastromen. De gevolgen van dergelijke aanvallen kunnen variëren van datalekken tot \emph{privilege escalation} — een techniek waarbij een agent door een beveiligingsfout ongeautoriseerd verhoogde toegangsrechten verkrijgt, waardoor ongeoorloofde toegang tot kritieke bedrijfssystemen mogelijk wordt \autocite{song2025protocolunveilingattackvectors}.
 
-Security-teams hebben vaak niet genoeg middelen om MCP-implementaties goed te beschermen. De praktijk hangt af van handmatige code-reviews en tijdelijke tools. Die tools passen niet bij de details van MCP. Dit maakt een knelpunt. Innovatie vertraagt door lange checks. Of servers gaan online zonder echte controle, wat vaker gebeurt. Onderzoek toont de urgentie. Zesenvijftig procent van de bedrijven met AI-agents meldt lekken in MCP-omgevingen, \autocite{guo2025systematicanalysismcpsecurity}. Dit voorstel pakt die kloof aan met automatisering en standaardisatie.
+Security-teams beschikken veelal over ontoereikende middelen om MCP-implementaties adequaat te beveiligen tegen deze specifieke dreigingen. De huidige praktijk is afhankelijk van handmatige code-reviews en ad-hoc beveiligingstools die niet specifiek zijn ontworpen voor de technische eigenheid van het Model Context Protocol. Deze algemene beveiligingstools (zoals Burp Suite voor API-testing of Semgrep voor code-analyse) missen de nodige contextuele kennis om MCP-specifieke kwetsbaarheden, zoals gemanipuleerde tool-beschrijvingen of onveilige JSON-RPC-communicatie, systematisch te detecteren. Dit gebrek aan gespecialiseerde tooling creëert een bottleneck in het ontwikkelproces: ofwel vertraagt innovatie door langdurige handmatige beveiligingscontroles, ofwel worden MCP-servers in productie gebracht zonder grondige veiligheidsbeoordeling. De urgentie van deze problematiek wordt onderstreept door recent onderzoek, waaruit blijkt dat 56\% van de ondernemingen die AI-agents inzetten, beveiligingsincidenten rapporteert in hun MCP-omgevingen \autocite{guo2025systematicanalysismcpsecurity}. Dit onderzoeksvoorstel beoogt deze lacune te adresseren door middel van een geautomatiseerd en gestandaardiseerd security assessment framework.
 
 
 
@@ -62,18 +62,23 @@ Het kernprobleem is dat Fintech-bedrijven momenteel geen gestructureerde en geau
 \section{Doelstelling}
 \label{sec:doelstelling}
 
-Deze bachelorproef wil een geautomatiseerd security assessment framework ontwerpen, ontwikkelen en valideren. Het richt zich op MCP-servers. De resultaten zijn concreet voor MCP-servers.
+Deze bachelorproef beoogt een geautomatiseerd security assessment framework te ontwerpen, ontwikkelen en valideren dat specifiek is toegespitst op MCP-server implementaties binnen Fintech-omgevingen. De concrete deliverables zijn:
 \begin{enumerate}
-    \item Een werkend prototype (Proof-of-Concept) van de security scanner.
-    \item Een validatie van de effectiviteit van dit framework ten opzichte van handmatige reviews (detectiegraad en tijdsbesparing).
-    \item Een set aanbevelingen voor de veilige implementatie van MCP in bedrijfsomgevingen.
+    \item Een werkend prototype (Proof-of-Concept) van de security scanner die minimaal de OWASP MCP Top 10 kwetsbaarheden kan detecteren.
+    \item Een kwantitatieve validatie van de effectiviteit van dit framework ten opzichte van handmatige reviews, gemeten aan de hand van:
+    \begin{itemize}
+        \item Detectiegraad: het percentage correct geïdentificeerde kwetsbaarheden
+        \item Tijdsbesparing: verschil in benodigde tijd voor volledige assessment
+        \item False positive/negative ratio's: nauwkeurigheid van de detectie
+    \end{itemize}
+    \item Een set evidence-based aanbevelingen voor de veilige implementatie van MCP in bedrijfsomgevingen, onderbouwd door de bevindingen uit de validatiefase.
 \end{enumerate}
 
-\section{Onderzoeksvragen}
-\label{sec:onderzoeksvragen}
+\section{Onderzoeksvraag}
+\label{sec:onderzoeksvraag}
 
 \paragraph{Hoofdvraag}
-Hoe kan een geautomatiseerd security assessment framework ontworpen en geïmplementeerd worden om MCP-server implementaties in bedrijfsomgevingen systematischer en efficiënter te screenen op kritieke kwetsbaarheden dan de huidige handmatige processen?
+Hoe kan een framework worden ontwikkeld dat MCP-server implementaties automatisch test op een vooraf gedefinieerde set kritieke kwetsbaarheden, en hoe verhoudt de dekkingsgraad en benodigde tijd per assessment zich tot de huidige handmatige beveiligingsprocedures in Fintech-organisaties?
 
 \paragraph{Deelvragen Probleemdomein}
 \begin{enumerate}
@@ -107,13 +112,13 @@ De complexiteit van deze implementaties brengt specifieke beveiligingsrisico's m
 
 \subsection{Classificatie van kwetsbaarheden}
 
-Om de grote hoeveelheid aan risico's te categoriseren, zijn er initiatieven gestart om de meest kritieke lekken in kaart te brengen. \textcite{OWASP2025} hebben een lijst van de "Top 10 MCP vulnerabilities" opgesteld, waarin onder andere \emph{tool poisoning} en het gebrek aan degelijke audit logging als prominente risico's worden bestempeld. Voor fintech-bedrijven, die met gevoelige persoons- en transactiegegevens werken, vormen deze specifieke kwetsbaarheden een direct risico op datalekken en compliance-schendingen.
+Om de grote hoeveelheid aan risico's te categoriseren, zijn er initiatieven gestart om de meest kritieke lekken in kaart te brengen. \textcite{OWASP2025} hebben een lijst van de "Top 10 MCP vulnerabilities" opgesteld, waarin onder andere \emph{tool poisoning} en het gebrek aan degelijke audit logging als prominente risico's worden bestempeld. Voor fintech-bedrijven, die met gevoelige persoons- en transactiegegevens werken, vormen deze specifieke kwetsbaarheden een direct risico op datalekken en compliance-schendingen. De OWASP-taxonomie onderscheidt zich door MCP-specifieke aanvalsvectoren te categoriseren die niet worden gedekt door algemene beveiligingsframeworks zoals de OWASP Top 10 voor webapplicaties, waardoor deze lijst een essentiële referentie vormt voor dit onderzoek.
 
 \subsection{Status Quo: Beperkingen van handmatige validatie}
 
-Ondanks de ernst van de dreigingen, ontbreken er momenteel gestandaardiseerde methodologieën voor validatie. De huidige praktijk in het bedrijfsleven leunt sterk op handmatige en herhaalde code reviews en het gebruik van ad-hoc tools. \textcite{Uproot2025} bieden weliswaar handleidingen voor het uitvoeren van MCP-pentests, maar deze processen blijven arbeidsintensief en foutgevoelig, wat het tijdsaspect dus niet positief beïnvloedt.
+Ondanks de ernst van de dreigingen, ontbreken er momenteel gestandaardiseerde methodologieën voor validatie. De huidige praktijk in het bedrijfsleven leunt sterk op handmatige en herhaalde code reviews en het gebruik van ad-hoc tools. \textcite{Uproot2025} bieden weliswaar handleidingen voor het uitvoeren van MCP-pentests, maar deze processen blijven arbeidsintensief en foutgevoelig. Een handmatige security review van een MCP-server implementatie kan gemiddeld 8 tot 16 uur in beslag nemen per iteratie, afhankelijk van de complexiteit van de server \autocite{Uproot2025}. Deze tijdsinvestering vormt een significante bottleneck in agile ontwikkelomgevingen waar frequente deployments de norm zijn.
 
-Bestaande tools bieden slechts gedeeltelijke oplossingen. Hoewel er open-source initiatieven zijn, zoals de scanning tool van \textcite{Invariant2025}, ontbreekt vaak een integratie in een breder security framework dat geschikt is voor enterprise-omgevingen. Bedrijven vallen hierdoor vaak terug op algemene tools zoals Burp Suite of Semgrep die de context-specifieke logica van MCP niet volledig begrijpen. Dit leidt tot een situatie waarin, volgens marktobservaties, een aanzienlijk deel van de deployments live gaat met niet-gedetecteerde veiligheidslekken.
+Bestaande tools bieden slechts gedeeltelijke oplossingen. Hoewel er open-source initiatieven zijn, zoals de scanning tool van \textcite{Invariant2025}, ontbreekt vaak een integratie in een breder security framework dat geschikt is voor enterprise-omgevingen. Bedrijven vallen hierdoor vaak terug op algemene tools zoals Burp Suite of Semgrep die de context-specifieke logica van MCP niet volledig begrijpen. Burp Suite is bijvoorbeeld ontworpen voor HTTP-gebaseerde API-testing en kan de JSON-RPC-communicatie van MCP wel onderscheppen, maar mist de semantische kennis om te herkennen wanneer een tool-beschrijving beveiligingsproblemen introduceert. Semgrep kan wel patronen in code detecteren, maar is niet geëquipeerd om de runtime-interactie tussen AI-agents en MCP-servers te analyseren. Dit leidt tot een situatie waarin, volgens marktobservaties, een aanzienlijk deel van de deployments live gaat met niet-gedetecteerde veiligheidslekken.
 
 Het ontbreken van een geautomatiseerd, gestructureerd framework dat specifiek is ontworpen voor de nuances van MCP-servers, vormt het centrale onderwerp in de huidige literatuur en praktijk. Dit onderzoek beoogt dit gat te dichten door een dergelijk framework te ontwerpen en de effectiviteit hiervan te evalueren.
 
@@ -146,7 +151,7 @@ Om objectieve en meetbare resultaten te garanderen, worden subjectieve methoden 
 % --- TIKZ FLOWCHART ---
 \begin{figure*}[htbp]
 \centering
-\begin{tikzpicture}[node distance=1.5cm]
+\begin{tikzpicture}[node distance=1.5cm, scale=0.9, transform shape]
     % Stijlen definiëren
     \tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=red!30]
     \tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=orange!30]
@@ -169,7 +174,7 @@ Om objectieve en meetbare resultaten te garanderen, worden subjectieve methoden 
     \draw [arrow] (test) -- (concl);
     
     % Feedback loop
-    \draw [arrow] (test.east) -- ++(1,0) |- (design.east) node[pos=0.25, right] {Iteratieve verbetering};
+    \draw [arrow] (test.east) -- ++(1.8,0) |- (design.east) node[pos=0.25, right, font=\small] {Iteratieve verbetering};
 
 \end{tikzpicture}
 \caption{Schematische weergave van de onderzoeksstappen.}
@@ -219,11 +224,12 @@ Het framework bestaat uit drie kerncomponenten:
 \textbf{Onderzoekstechniek:} Experimentele validatie en vergelijkende studie. \\
 Omdat er weinig publieke testdata is, wordt een eigen testomgeving ontwikkeld: de 'Fintech MCP Goat'. Dit is een opzettelijk onveilige MCP-server die financiële use-cases nabootst (bv. saldo opvragen, overschrijving starten). 
 
-Deze omgeving dient als 'ground truth'. De effectiviteit van de scanner wordt gemeten door deze los te laten op de 'Goat' server en de resultaten te vergelijken met de bekende kwetsbaarheden. De validatie is puur kwantitatief:
+Deze omgeving dient als 'ground truth'. Om een eerlijke vergelijking met handmatig werk mogelijk te maken, wordt een concrete handmatige procedure vastgelegd in de vorm van een checklist met een gedetailleerd stappenplan. Vervolgens worden meerdere testscenario's met ingebouwde kwetsbaarheden opgezet. Per scenario wordt systematisch gemeten:
 \begin{itemize}
-    \item \textbf{Detectieratio (Recall):} $\frac{\text{Aantal gevonden kwetsbaarheden}}{\text{Totaal aantal aanwezige kwetsbaarheden}}$
-    \item \textbf{False Positive Rate:} Aantal onterechte alarmen.
-    \item \textbf{Performance:} Scan-tijd in milliseconden.
+    \item \textbf{Detectieratio (Recall):} $\frac{\text{Aantal gevonden kwetsbaarheden}}{\text{Totaal aantal aanwezige kwetsbaarheden}}$ — waarbij zowel de handmatige review als het framework worden toegepast
+    \item \textbf{False Positive Rate:} Aantal onterechte alarmen voor beide methoden
+    \item \textbf{Performance:} Benodigde tijd voor volledige assessment (handmatig in uren, geautomatiseerd in minuten)
+    \item \textbf{Kwalitatieve analyse:} Identificatie waar menselijke expertise beter presteert (contextuele interpretatie) versus waar de tool superieur is (herhaalbaarheid, volledigheid)
 \end{itemize}
 
 \textbf{Tools:} Docker Compose (voor het opzetten van de testlab), Pytest (voor geautomatiseerde testsuites), Burp Suite (voor manuele verificatie van bevindingen). \\
@@ -278,7 +284,7 @@ Figuur~\ref{fig:mockup_detectie} toont de verwachte verdeling van de detectieres
 
 \begin{figure*}[htbp]
     \centering
-    \begin{tikzpicture}
+    \begin{tikzpicture}[scale=0.85, transform shape]
         % Assen
         \draw[thick,->] (0,0) -- (8,0) node[anchor=north west] {Type Kwetsbaarheid};
         \draw[thick,->] (0,0) -- (0,5) node[anchor=south east] {Detectieratio (\%)};
@@ -322,7 +328,7 @@ Een tweede belangrijke verwachting is de schaalbaarheid. Figuur~\ref{fig:mockup_
 
 \begin{figure*}[htbp]
     \centering
-    \begin{tikzpicture}
+    \begin{tikzpicture}[scale=0.85, transform shape]
         % Assen
         \draw[thick,->] (0,0) -- (7,0) node[anchor=north west] {Aantal MCP Tools/Endpoints};
         \draw[thick,->] (0,0) -- (0,5) node[anchor=south east] {Tijd (uren)};
@@ -354,9 +360,9 @@ Voor Fintech-bedrijven, de primaire doelgroep, biedt dit resultaat drie concrete
 \end{enumerate}
 
 \subsection{Conclusie}
-Dit onderzoek toont aan dat een gespecialiseerd security framework voor MCP haalbaar en nodig is. Voor veilige AI-agents in financiën.
+Dit onderzoek beoogt aan te tonen dat een gespecialiseerd security framework voor MCP zowel haalbaar als noodzakelijk is voor de veilige implementatie van AI-agents in financiële omgevingen. Het framework biedt niet alleen een praktische oplossing, maar genereert ook fundamentele inzichten in de beperkingen van handmatige audits en de randvoorwaarden voor veilige MCP-integraties.
 
-Als resultaten afwijken, zoals te weinig context voor complexe fouten, is dat ook waardevol. Het wijst op afhankelijkheid van menselijke expertise. En noodzaak voor hybrid approach in de nabije toekomst.
+Indien de resultaten afwijken van de verwachtingen — bijvoorbeeld wanneer blijkt dat het geautomatiseerde framework onvoldoende context kan verwerken voor complexe kwetsbaarheden — dan levert dit eveneens waardevolle wetenschappelijke inzichten op. Een dergelijke bevinding zou de blijvende afhankelijkheid van menselijke expertise onderstrepen en de noodzaak aantonen voor een hybride benadering waarbij geautomatiseerde tools en menselijke analyse complementair worden ingezet. Deze nuancering is van essentieel belang voor de ontwikkeling van realistische beveiligingsstrategieën binnen de Fintech-sector.
 
 
 
