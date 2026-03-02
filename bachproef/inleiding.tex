@@ -5,32 +5,89 @@
 \chapter{\IfLanguageName{dutch}{Inleiding}{Introduction}}%
 \label{ch:inleiding}
 
-De inleiding moet de lezer net genoeg informatie verschaffen om het onderwerp te begrijpen en in te zien waarom de onderzoeksvraag de moeite waard is om te onderzoeken. In de inleiding ga je literatuurverwijzingen beperken, zodat de tekst vlot leesbaar blijft. Je kan de inleiding verder onderverdelen in secties als dit de tekst verduidelijkt. Zaken die aan bod kunnen komen in de inleiding~\autocite{Pollefliet2011}:
 
-\begin{itemize}
-  \item context, achtergrond
-  \item afbakenen van het onderwerp
-  \item verantwoording van het onderwerp, methodologie
-  \item probleemstelling
-  \item onderzoeksdoelstelling
-  \item onderzoeksvraag
-  \item \ldots
-\end{itemize}
+De sector van financiële technologie, of Fintech, heeft de afgelopen vijf jaar een jaarlijkse groei van 23,58\% doorgemaakt \autocite{statista2024fintechgrowth}. Deze exponentiële ontwikkeling wordt gedreven door de toenemende adoptie van autonome AI-agents — softwaresystemen die zelfstandig beslissingen nemen en acties uitvoeren zonder directe menselijke tussenkomst \autocite{russell2021artificialintelligence}. Deze agents nemen niet alleen eenvoudige taken over, maar worden ingezet voor complexe bedrijfsprocessen, variërend van het afhandelen van klantvragen tot het verwerken van terugbetalingen en transacties. Voor effectieve communicatie met interne databases en API's is het Model Context Protocol (MCP) essentieel geworden. MCP zorgt voor interoperabiliteit als gestandaardiseerd communicatieprotocol tussen AI-modellen en bedrijfssystemen. In afwezigheid van MCP zijn organisaties genoodzaakt propriëtaire integraties te ontwikkelen voor elk AI-model afzonderlijk, hetgeen resulteert in vendor lock-in, verhoogde ontwikkelkosten (gemiddeld 40\% hoger \autocite{anthropic2024mcpwhitepaper}) en verminderde schaalbaarheid door het ontbreken van herbruikbare componenten. MCP adresseert deze problematiek door een uniforme interface te bieden waardoor AI-agents platformonafhankelijk kunnen communiceren met bedrijfssystemen, vergelijkbaar met hoe HTTP de standaard vormde voor webapplicaties.
+
+Deze technologische vooruitgang brengt echter significante veiligheidsrisico's met zich mee. Stel een financiële technologieonderneming voor die een AI-agent via het Model Context Protocol toegang verleent tot haar betaalsystemen. Een dergelijke configuratie introduceert specifieke aanvalsvectoren. Kwaadaardige actoren — gedefinieerd als individuen of georganiseerde groepen die opzettelijk beveiligingsmaatregelen trachten te omzeilen met criminele intenties — kunnen \emph{prompt injection} aanwenden om de oorspronkelijke instructies van de agent te wijzigen door gemanipuleerde invoer in het systeem te injecteren. Eveneens kunnen zij \emph{tool poisoning} toepassen, waarbij schadelijke commando's systematisch worden verborgen in schijnbaar legitieme datastromen. De gevolgen van dergelijke aanvallen kunnen variëren van datalekken tot \emph{privilege escalation} — een techniek waarbij een agent door een beveiligingsfout ongeautoriseerd verhoogde toegangsrechten verkrijgt, waardoor ongeoorloofde toegang tot kritieke bedrijfssystemen mogelijk wordt \autocite{song2025protocolunveilingattackvectors}.
+
+Security-teams beschikken veelal over ontoereikende middelen om MCP-implementaties adequaat te beveiligen tegen deze specifieke dreigingen. De huidige praktijk is afhankelijk van handmatige code-reviews en ad-hoc beveiligingstools die niet specifiek zijn ontworpen voor de technische eigenheid van het Model Context Protocol. Deze algemene beveiligingstools (zoals Burp Suite voor API-testing of Semgrep voor code-analyse) missen de nodige contextuele kennis om MCP-specifieke kwetsbaarheden, zoals gemanipuleerde tool-\hspace{0pt}beschrijvingen of onveilige JSON-RPC-communicatie, systematisch te detecteren. Dit gebrek aan gespecialiseerde tooling creëert een bottleneck in het ontwikkelproces: ofwel vertraagt innovatie door langdurige handmatige beveiligingscontroles, ofwel worden MCP-servers in productie gebracht zonder grondige veiligheidsbeoordeling. De urgentie van deze problematiek wordt onderstreept door recent onderzoek, waaruit blijkt dat 56\% van de ondernemingen die AI-agents inzetten, beveiligingsincidenten rapporteert in hun MCP-omgevingen \autocite{guo2025systematicanalysismcpsecurity}. Dit onderzoeksvoorstel beoogt deze lacune te adresseren door middel van een geautomatiseerd en gestandaardiseerd security assessment framework.
+
+
+%De inleiding moet de lezer net genoeg informatie verschaffen om het onderwerp te begrijpen en in te zien waarom de onderzoeksvraag de moeite waard is om te onderzoeken. In de inleiding ga je literatuurverwijzingen beperken, zodat de tekst vlot leesbaar blijft. Je kan de inleiding verder onderverdelen in secties als dit de tekst verduidelijkt. Zaken die aan bod kunnen komen in de inleiding~\autocite{Pollefliet2011}:
+
+%\begin{itemize}
+%  \item context, achtergrond
+%  \item afbakenen van het onderwerp
+%  \item verantwoording van het onderwerp, methodologie
+%  \item probleemstelling
+%  \item onderzoeksdoelstelling
+%  \item onderzoeksvraag
+%  \item \ldots
+%\end{itemize}
 
 \section{\IfLanguageName{dutch}{Probleemstelling}{Problem Statement}}%
 \label{sec:probleemstelling}
 
-Uit je probleemstelling moet duidelijk zijn dat je onderzoek een meerwaarde heeft voor een concrete doelgroep. De doelgroep moet goed gedefinieerd en afgelijnd zijn. Doelgroepen als ``bedrijven,'' ``KMO's'', systeembeheerders, enz.~zijn nog te vaag. Als je een lijstje kan maken van de personen/organisaties die een meerwaarde zullen vinden in deze bachelorproef (dit is eigenlijk je steekproefkader), dan is dat een indicatie dat de doelgroep goed gedefinieerd is. Dit kan een enkel bedrijf zijn of zelfs één persoon (je co-promotor/opdrachtgever).
+Het kernprobleem is dat Fintech-bedrijven momenteel geen gestructureerde en geautomatiseerde manier hebben om MCP-servers op kritieke veiligheidskwetsbaarheden te controleren vóór live-gang.
+
+\begin{itemize}
+  \item \textbf{Huidige situatie (Status Quo):} Security teams vertrouwen op handmatige code reviews, wat een bottleneck vormt en vaak onvolledig is. Er wordt gebruikgemaakt van ad-hoc tools zoals Burp Suite of Semgrep, maar deze missen specifieke context voor MCP-gerelateerde aanvallen.
+  \item \textbf{Specifieke risico's:} Zonder degelijke screening zijn servers kwetsbaar voor:
+        \begin{itemize}
+          \item \emph{Prompt injection attacks} via manipulatie van tool-beschrijvingen.
+          \item \emph{Token theft \& privilege escalation}, waarbij agents te brede rechten krijgen.
+          \item \emph{Tool poisoning}, waarbij kwaadaardige instructies in data worden verstopt.
+          \item \emph{Confused deputy attacks}, omdat servers vaak geen onderscheid maken tussen gebruikers.
+          \item Gebrek aan \emph{audit logging}, waardoor acties niet traceerbaar zijn.
+        \end{itemize}
+  \item \textbf{Doelgroep:} Het onderzoek richt zich op security teams, DevSecOps-engineers en enterprise architects binnen Fintech, e-commerce en andere gereguleerde industrieën.
+\end{itemize}
+
+%Uit je probleemstelling moet duidelijk zijn dat je onderzoek een meerwaarde heeft voor een concrete doelgroep. De doelgroep moet goed gedefinieerd en afgelijnd zijn. Doelgroepen als ``bedrijven,'' ``KMO's'', systeembeheerders, enz.~zijn nog te vaag. Als je een lijstje kan maken van de personen/organisaties die een meerwaarde zullen vinden in deze bachelorproef (dit is eigenlijk je steekproefkader), dan is dat een indicatie dat de doelgroep goed gedefinieerd is. Dit kan een enkel bedrijf zijn of zelfs één persoon (je co-promotor/opdrachtgever).
 
 \section{\IfLanguageName{dutch}{Onderzoeksvraag}{Research question}}%
 \label{sec:onderzoeksvraag}
 
-Wees zo concreet mogelijk bij het formuleren van je onderzoeksvraag. Een onderzoeksvraag is trouwens iets waar nog niemand op dit moment een antwoord heeft (voor zover je kan nagaan). Het opzoeken van bestaande informatie (bv. ``welke tools bestaan er voor deze toepassing?'') is dus geen onderzoeksvraag. Je kan de onderzoeksvraag verder specifiëren in deelvragen. Bv.~als je onderzoek gaat over performantiemetingen, dan 
+\paragraph{Hoofdvraag}
+Hoe kan een framework worden ontwikkeld dat MCP-server implementaties automatisch test op een vooraf gedefinieerde set kritieke kwetsbaarheden, en hoe verhoudt de dekkingsgraad en benodigde tijd per assessment zich tot de huidige handmatige beveiligingsprocedures in Fintech-organisaties?
+
+\paragraph{Deelvragen Probleemdomein}
+\begin{enumerate}
+  \item Hoeveel van de top 10 MCP-kwetsbaarheden worden momenteel gedetecteerd door handmatige security reviews binnen fintech-bedrijven?
+  \item Wat is het percentage MCP-implementaties in enterprises die kwetsbaar zijn voor prompt injection attacks, zoals vastgesteld door recent gepubliceerde onderzoeken?
+  \item Hoe vaak leiden MCP-gerelateerde kwetsbaarheden in de praktijk tot datalekken of frauduleuze transacties (incidentratio in de laatste 24 maanden)?
+  \item Hoeveel tijd besteden security teams gemiddeld aan het handmatig screenen van MCP-server code?
+  \item Wat is het percentage false negatives bij bestaande handmatige controles?
+\end{enumerate}
+
+\paragraph{Deelvragen Oplossingsdomein}
+\begin{enumerate}
+  \item Hoeveel procent van de MCP-kwetsbaarheden kan een geautomatiseerde tool detecteren in vergelijking met handmatige reviews?
+  \item Wat is de gemiddelde tijdsbesparing bij het scannen van MCP-servers door een geautomatiseerde pipeline?
+  \item Wat is het percentage false positives/negatives bij gebruik van SAST, DAST en fuzzing op MCP-implementaties?
+  \item Hoeveel MCP-servers kunnen effectief per dag worden gescand met het voorgestelde framework?
+  \item Hoe verbeteren geprioriteerde rapporten de reactietijd van security teams?
+\end{enumerate}
+
+%Wees zo concreet mogelijk bij het formuleren van je onderzoeksvraag. Een onderzoeksvraag is trouwens iets waar nog niemand op dit moment een antwoord heeft (voor zover je kan nagaan). Het opzoeken van bestaande informatie (bv. ``welke tools bestaan er voor deze toepassing?'') is dus geen onderzoeksvraag. Je kan de onderzoeksvraag verder specifiëren in deelvragen. Bv.~als je onderzoek gaat over performantiemetingen, dan
 
 \section{\IfLanguageName{dutch}{Onderzoeksdoelstelling}{Research objective}}%
 \label{sec:onderzoeksdoelstelling}
 
-Wat is het beoogde resultaat van je bachelorproef? Wat zijn de criteria voor succes? Beschrijf die zo concreet mogelijk. Gaat het bv.\ om een proof-of-concept, een prototype, een verslag met aanbevelingen, een vergelijkende studie, enz.
+Deze bachelorproef beoogt een geautomatiseerd security assessment framework te ontwerpen, ontwikkelen en valideren dat specifiek is toegespitst op MCP-server implementaties binnen Fintech-omgevingen. De concrete deliverables zijn:
+\begin{enumerate}
+  \item Een werkend prototype (Proof-of-Concept) van de security scanner die minimaal de OWASP MCP Top 10 kwetsbaarheden kan detecteren.
+  \item Een kwantitatieve validatie van de effectiviteit van dit framework ten opzichte van handmatige reviews, gemeten aan de hand van:
+        \begin{itemize}
+          \item Detectiegraad: het percentage correct geïdentificeerde kwetsbaarheden
+          \item Tijdsbesparing: verschil in benodigde tijd voor volledige assessment
+          \item False positive/negative ratio's: nauwkeurigheid van de detectie
+        \end{itemize}
+  \item Een set evidence-based aanbevelingen voor de veilige implementatie van MCP in bedrijfsomgevingen, onderbouwd door de bevindingen uit de validatiefase.
+\end{enumerate}
+
+
+%Wat is het beoogde resultaat van je bachelorproef? Wat zijn de criteria voor succes? Beschrijf die zo concreet mogelijk. Gaat het bv.\ om een proof-of-concept, een prototype, een verslag met aanbevelingen, een vergelijkende studie, enz.
 
 \section{\IfLanguageName{dutch}{Opzet van deze bachelorproef}{Structure of this bachelor thesis}}%
 \label{sec:opzet-bachelorproef}
