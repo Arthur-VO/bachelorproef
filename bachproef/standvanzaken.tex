@@ -7,45 +7,22 @@
 
 % Pas na deze inleidende paragraaf komt de eerste sectiehoofding.
 
-Dit hoofdstuk bevat je literatuurstudie. De inhoud gaat verder op de inleiding, maar zal het onderwerp van de bachelorproef *diepgaand* uitspitten. De bedoeling is dat de lezer na lezing van dit hoofdstuk helemaal op de hoogte is van de huidige stand van zaken (state-of-the-art) in het onderzoeksdomein. Iemand die niet vertrouwd is met het onderwerp, weet nu voldoende om de rest van het verhaal te kunnen volgen, zonder dat die er nog andere informatie moet over opzoeken \autocite{Pollefliet2011}.
+\subsection{Opkomst en risico's van MCP in Fintech}
 
-Je verwijst bij elke bewering die je doet, vakterm die je introduceert, enz.\ naar je bronnen. In \LaTeX{} kan dat met het commando \texttt{$\backslash${textcite\{\}}} of \texttt{$\backslash${autocite\{\}}}. Als argument van het commando geef je de ``sleutel'' van een ``record'' in een bibliografische databank in het Bib\LaTeX{}-formaat (een tekstbestand). Als je expliciet naar de auteur verwijst in de zin (narratieve referentie), gebruik je \texttt{$\backslash${}textcite\{\}}. Soms is de auteursnaam niet expliciet een onderdeel van de zin, dan gebruik je \texttt{$\backslash${}autocite\{\}} (referentie tussen haakjes). Dit gebruik je bv.~bij een citaat, of om in het bijschrift van een overgenomen afbeelding, broncode, tabel, enz. te verwijzen naar de bron. In de volgende paragraaf een voorbeeld van elk.
+De integratie van AI-agents in de financiële sector, voor toepassingen variërend van klantenservice tot transactieverwerking, steunt in toenemende mate op gestandaardiseerde protocollen. Het Model Context Protocol (MCP) fungeert hierbij als een kritieke brug tussen AI-modellen en bedrijfsapplicaties met toebehorende data. Hoewel deze standaardisatie integratie vergemakkelijkt, hebben \textcite{song2025protocolunveilingattackvectors} aangetoond dat het ecosysteem hierdoor nieuwe aanvalsvectoren introduceert die verder reiken dan het protocol zelf.
 
-\textcite{Knuth1998} schreef een van de standaardwerken over sorteer- en zoekalgoritmen. Experten zijn het erover eens dat cloud computing een interessante opportuniteit vormen, zowel voor gebruikers als voor dienstverleners op vlak van informatietechnologie~\autocite{Creeger2009}.
+De complexiteit van deze implementaties brengt specifieke beveiligingsrisico's met zich mee. Uit een systematische analyse door \textcite{guo2025systematicanalysismcpsecurity} blijkt dat MCP-implementaties vatbaar zijn voor diverse fundamentele kwetsbaarheden, waaronder \emph{prompt injection} via tool-beschrijvingen en \emph{privilege escalation}. In de praktijk kunnen kwaadwillenden deze zwakheden exploiteren. Zo beschrijven \textcite{Cato2025} in hun onderzoek naar "Living off AI"-aanvallen hoe MCP-servers gemanipuleerd kunnen worden omdat ze onvoldoende onderscheid maken tussen legitieme gebruikers en externe actoren, ook wel bekend als de \emph{confused deputy} aanval.
 
-Let er ook op: het \texttt{cite}-commando voor de punt, dus binnen de zin. Je verwijst meteen naar een bron in de eerste zin die erop gebaseerd is, dus niet pas op het einde van een paragraaf.
+\subsection{Classificatie van kwetsbaarheden}
 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.8\textwidth]{grail.jpg}
-  \caption[Voorbeeld figuur.]{\label{fig:grail}Voorbeeld van invoegen van een figuur. Zorg altijd voor een uitgebreid bijschrift dat de figuur volledig beschrijft zonder in de tekst te moeten gaan zoeken. Vergeet ook je bronvermelding niet!}
-\end{figure}
+Om de grote hoeveelheid aan risico's te categoriseren, zijn er initiatieven gestart om de meest kritieke lekken in kaart te brengen. \textcite{OWASP2025} hebben een lijst van de "Top 10 MCP vulnerabilities" opgesteld, waarin onder andere \emph{tool poisoning} en het gebrek aan degelijke audit logging als prominente risico's worden bestempeld. Voor fintech-bedrijven, die met gevoelige persoons- en transactiegegevens werken, vormen deze specifieke kwetsbaarheden een direct risico op datalekken en compliance-schendingen. De OWASP-taxonomie onderscheidt zich door MCP-specifieke aanvalsvectoren te categoriseren die niet worden gedekt door algemene beveiligingsframeworks zoals de OWASP Top 10 voor webapplicaties, waardoor deze lijst een essentiële referentie vormt voor dit onderzoek.
 
-\begin{listing}
-  \begin{minted}{python}
-    import pandas as pd
-    import seaborn as sns
+\subsection{Status Quo: Beperkingen van handmatige validatie}
 
-    penguins = sns.load_dataset('penguins')
-    sns.relplot(data=penguins, x="flipper_length_mm", y="bill_length_mm", hue="species")
-  \end{minted}
-  \caption[Voorbeeld codefragment]{Voorbeeld van het invoegen van een codefragment.}
-\end{listing}
+Ondanks de ernst van de dreigingen, ontbreken er momenteel gestandaardiseerde methodologieën voor validatie. De huidige praktijk in het bedrijfsleven leunt sterk op handmatige en herhaalde code reviews en het gebruik van ad-hoc tools. \textcite{Uproot2025} bieden weliswaar handleidingen voor het uitvoeren van MCP-pentests, maar deze processen blijven arbeidsintensief en foutgevoelig. Een handmatige security review van een MCP-server implementatie kan gemiddeld 8 tot 16 uur in beslag nemen per iteratie, afhankelijk van de complexiteit van de server \autocite{Uproot2025}. Deze tijdsinvestering vormt een significante bottleneck in agile ontwikkelomgevingen waar frequente deployments de norm zijn.
 
-\lipsum[7-20]
+Bestaande tools bieden slechts gedeeltelijke oplossingen. Hoewel er open-source initiatieven zijn, zoals de scanning tool van \textcite{Invariant2025}, ontbreekt vaak een integratie in een breder security framework dat geschikt is voor enterprise-omgevingen. Bedrijven vallen hierdoor vaak terug op algemene tools zoals Burp Suite of Semgrep die de context-specifieke logica van MCP niet volledig begrijpen. Burp Suite is bijvoorbeeld ontworpen voor HTTP-gebaseerde API-testing en kan de JSON-RPC-communicatie van MCP wel onderscheppen, maar mist de semantische kennis om te herkennen wanneer een tool-beschrijving beveiligingsproblemen introduceert. Semgrep kan wel patronen in code detecteren, maar is niet geëquipeerd om de runtime-interactie tussen AI-agents en MCP-servers te analyseren. Dit leidt tot een situatie waarin, volgens marktobservaties, een aanzienlijk deel van de deployments live gaat met niet-gedetecteerde veiligheidslekken.
 
-\begin{table}
-  \centering
-  \begin{tabular}{lcr}
-    \toprule
-    \textbf{Kolom 1} & \textbf{Kolom 2} & \textbf{Kolom 3} \\
-    $\alpha$         & $\beta$          & $\gamma$         \\
-    \midrule
-    A                & 10.230           & a                \\
-    B                & 45.678           & b                \\
-    C                & 99.987           & c                \\
-    \bottomrule
-  \end{tabular}
-  \caption[Voorbeeld tabel]{\label{tab:example}Voorbeeld van een tabel.}
-\end{table}
+Het ontbreken van een geautomatiseerd, gestructureerd framework dat specifiek is ontworpen voor de nuances van MCP-servers, vormt het centrale onderwerp in de huidige literatuur en praktijk. Dit onderzoek beoogt dit gat te dichten door een dergelijk framework te ontwerpen en de effectiviteit hiervan te evalueren.
+
 
