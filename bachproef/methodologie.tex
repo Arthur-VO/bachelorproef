@@ -26,10 +26,7 @@
 %% Maak voor elke fase (behalve het literatuuronderzoek) een NIEUW HOOFDSTUK aan
 %% en geef het een gepaste titel.
 
-\lipsum[21-25]
-
-
-Om objectieve en meetbare resultaten te garanderen, worden subjectieve methoden zoals enquêtes vermeden. In plaats daarvan wordt gekozen voor experimentele validatie aan de hand van kwantitatieve metrieken. Figuur~\ref{fig:methodologie_flow} geeft een schematisch overzicht van de doorlopen fasen.
+Dit onderzoek hanteert een empirisch-technische aanpak op basis van experimentele validatie met kwantitatieve metrieken. Deze keuze past bij de onderzoeksvraag: om uitspraken te doen over detectienauwkeurigheid en tijdsbesparing zijn meetbare resultaten nodig die reproduceerbaar zijn. Het onderzoek verloopt in vier opeenvolgende fasen die op elkaar voortbouwen: een literatuurstudie legt het theoretische fundament, een requirementsanalyse vertaalt compliance-eisen naar concrete criteria, een prototypingfase realiseert het framework, en een validatiefase meet de effectiviteit ervan. Figuur~\ref{fig:methodologie_flow} geeft een schematisch overzicht van deze doorlopen fasen en de iteratieve feedbacklus tussen validatie en ontwerp.
 
 % --- TIKZ FLOWCHART ---
 \begin{figure*}[htbp]
@@ -64,7 +61,7 @@ Om objectieve en meetbare resultaten te garanderen, worden subjectieve methoden 
     \label{fig:methodologie_flow}
 \end{figure*}
 
-\subsection{Fase 1: Literatuurstudie en classificatie van dreigingen}
+\section{Fase 1: Literatuurstudie en classificatie van dreigingen}
 
 \textbf{Onderzoekstechniek:} Literatuurstudie. \\
 Het onderzoek start met een diepgaande analyse van de technische specificaties van het Model Context Protocol (MCP). Er wordt gebruikgemaakt van academische databanken (zoals Google Scholar, IEEE Xplore en arXiv) en officiële technische documentatie om de architectuur en datastromen te doorgronden. Specifiek wordt gezocht naar bestaande taxonomieën van AI-kwetsbaarheden (zoals de OWASP Top 10 voor LLM's) en hoe deze zich vertalen naar de MCP-context.
@@ -75,7 +72,7 @@ Het onderzoek start met een diepgaande analyse van de technische specificaties v
 \textbf{Tijdschatting:} 4 weken. \\
 \textbf{Deliverable:} Hoofdstuk 'Literatuurstudie' met een gedefinieerd dreigingsmodel.
 
-\subsection{Fase 2: Requirementsanalyse voor Fintech-toepassingen}
+\section{Fase 2: Requirementsanalyse voor Fintech-toepassingen}
 
 \textbf{Onderzoekstechniek:} Documentanalyse en functionele analyse. \\
 In plaats van interviews of enquêtes, die subjectieve meningen opleveren, wordt er gekeken naar harde compliance-eisen uit de financiële sector (zoals PCI-DSS en GDPR) en best practices voor API-security. Op basis hiervan worden de functionele en niet-functionele vereisten (zoals logging, auditability en toegangscontrole) voor de scanner vastgelegd volgens de MoSCoW-methode.
@@ -86,7 +83,7 @@ In plaats van interviews of enquêtes, die subjectieve meningen opleveren, wordt
 \textbf{Tijdschatting:} 2 weken. \\
 \textbf{Deliverable:} Een geprioriteerde lijst van requirements.
 
-\subsection{Fase 3: Ontwerp en implementatie van het assessment framework}
+\section{Fase 3: Ontwerp en implementatie van het assessment framework}
 
 \textbf{Onderzoekstechniek:} Prototyping en iteratieve softwareontwikkeling (PoC). \\
 Dit is de technisch meest complexe fase waarin het artefact daadwerkelijk wordt gebouwd. De scanner wordt modulair opgezet om flexibiliteit te garanderen. De technische realisatie gebeurt in Python vanwege de uitgebreide ondersteuning voor JSON-RPC en asynchrone communicatie, essentieel voor MCP.
@@ -102,14 +99,14 @@ Het framework bestaat uit drie kerncomponenten:
 \textbf{Tijdschatting:} 6 weken. \\
 \textbf{Deliverable:} Een werkende Proof of Concept (PoC) van de scanner, gepubliceerd als open-source code op GitHub.
 
-\subsection{Fase 4: Validatie via een 'Vulnerable MCP Server'}
+\section{Fase 4: Validatie via een 'Vulnerable MCP Server'}
 
 \textbf{Onderzoekstechniek:} Experimentele validatie en vergelijkende studie. \\
 Omdat er weinig publieke testdata is, wordt een eigen testomgeving ontwikkeld: de 'Fintech MCP Goat'. Dit is een opzettelijk onveilige MCP-server die financiële use-cases nabootst (bv. saldo opvragen, overschrijving starten).
 
 Deze omgeving dient als 'ground truth'. Om een eerlijke vergelijking met handmatig werk mogelijk te maken, wordt een concrete handmatige procedure vastgelegd in de vorm van een checklist met een gedetailleerd stappenplan. Vervolgens worden meerdere testscenario's met ingebouwde kwetsbaarheden opgezet. Per scenario wordt systematisch gemeten:
 \begin{itemize}
-    \item \textbf{Detectieratio (Recall):} $\frac{\text{Aantal gevonden kwetsbaarheden}}{\text{Totaal aantal aanwezige kwetsbaarheden}}$ — waarbij zowel de handmatige review als het framework worden toegepast
+    \item \textbf{Detectieratio (Recall):} $\frac{\text{Aantal gevonden kwetsbaarheden}}{\text{Totaal aantal aanwezige kwetsbaarheden}}$, gemeten voor zowel de handmatige review als het framework
     \item \textbf{False Positive Rate:} Aantal onterechte alarmen voor beide methoden
     \item \textbf{Performance:} Benodigde tijd voor volledige assessment (handmatig in uren, geautomatiseerd in minuten)
     \item \textbf{Kwalitatieve analyse:} Identificatie waar menselijke expertise beter presteert (contextuele interpretatie) versus waar de tool superieur is (herhaalbaarheid, volledigheid)
@@ -119,7 +116,7 @@ Deze omgeving dient als 'ground truth'. Om een eerlijke vergelijking met handmat
 \textbf{Tijdschatting:} 3 weken. \\
 \textbf{Deliverable:} Validatierapport met meetresultaten en een analyse van de nauwkeurigheid.
 
-\subsection{Overzichtstabel Planning}
+\section{Overzichtstabel Planning}
 
 Tabel~\ref{tab:planning} geeft een samenvattend overzicht van de fasering en deliverables.
 
