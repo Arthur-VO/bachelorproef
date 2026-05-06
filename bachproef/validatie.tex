@@ -1,0 +1,125 @@
+%%=============================================================================
+%% Validatie
+%%=============================================================================
+
+\chapter{Evaluatie en validatie}%
+\label{ch:validatie}
+
+De evaluatie meet twee dingen: hoeveel van de vijf ingebedde kwetsbaarheden het framework detecteert (recall), en hoeveel tijd dat kost vergeleken met een handmatige procedure. De Goat-server dient als gecontroleerde testomgeving met een bekende ground truth.
+
+\section{Testopstelling en ground truth}
+
+De Goat-server bevat vijf opzettelijk ingebedde kwetsbaarheden (Tabel~\ref{tab:groundtruth}).
+
+\begin{table}[htbp]
+    \centering
+    \caption{Ground truth: ingebedde kwetsbaarheden in de Goat-server.}
+    \label{tab:groundtruth}
+    \begin{tabular}{@{}llp{7cm}@{}}
+        \toprule
+        \textbf{ID} & \textbf{Tool} & \textbf{Kwetsbaarheid} \\ \midrule
+        V1 & \texttt{analyze\_financial\_document} & Prompt injection-instructie in tool description \\
+        V2 & \texttt{analyze\_financial\_document} & Geen autorisatiecheck: elke aanroeper kan de tool uitvoeren \\
+        V3 & \texttt{execute\_transfer}             & Geen autorisatiecheck: overdrachten mogelijk zonder verificatie \\
+        V4 & \texttt{execute\_transfer}             & Negatieve bedragen geaccepteerd zonder server-side validatie \\
+        V5 & \texttt{fetch\_market\_news}           & Tool poisoning: response bevat verborgen injection-payload \\ \bottomrule
+    \end{tabular}
+\end{table}
+
+De testomgeving draait volledig gecontaineriseerd via Docker Compose. De Goat-server en de scanner communiceren op een geïsoleerd intern netwerk, zonder blootstelling aan externe systemen.
+
+\section{Resultaten geautomatiseerde scan}
+
+De scanner voltooide de assessment in minder dan 30 seconden en produceerde 13 bevindingen, verdeeld over SAST en fuzzing (Tabel~\ref{tab:scanresultaten}).
+
+\begin{table}[htbp]
+    \centering
+    \caption{Scanresultaten per module.}
+    \label{tab:scanresultaten}
+    \begin{tabular}{@{}lrrrr@{}}
+        \toprule
+        \textbf{Module} & \textbf{Totaal} & \textbf{HIGH} & \textbf{MEDIUM} & \textbf{LOW} \\ \midrule
+        SAST    & 7  & 3 & 1 & 3 \\
+        Fuzzing & 6  & 6 & 0 & 0 \\ \midrule
+        Totaal  & 13 & 9 & 1 & 3 \\ \bottomrule
+    \end{tabular}
+\end{table}
+
+Alle vijf ground truth-kwetsbaarheden werden gedetecteerd. Tabel~\ref{tab:recall} toont welke bevindingen op welke ground truth-instantie betrekking hebben.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Mapping van bevindingen op ground truth.}
+    \label{tab:recall}
+    \begin{tabular}{@{}llll@{}}
+        \toprule
+        \textbf{GT} & \textbf{Gevonden door} & \textbf{Regels} & \textbf{Gedetecteerd} \\ \midrule
+        V1 & SAST     & SAST-001                    & \checkmark \\
+        V2 & SAST + Fuzzing & SAST-003, FUZZ-002, FUZZ-003 & \checkmark \\
+        V3 & SAST + Fuzzing & SAST-003, FUZZ-003          & \checkmark \\
+        V4 & SAST + Fuzzing & SAST-002, FUZZ-003          & \checkmark \\
+        V5 & Fuzzing  & FUZZ-004                    & \checkmark \\ \bottomrule
+    \end{tabular}
+\end{table}
+
+De recall bedraagt $\frac{5}{5} = 100\%$.
+
+\subsection*{False positives}
+
+Van de 13 bevindingen is er één debateerbaar: FUZZ-002 op \texttt{list\_recent\_transactions}. De fuzzer detecteerde dat een injection-payload ongesaniteerd terugkomt in de response van deze tool. Dit is geen opzettelijk ingebedde kwetsbaarheid, maar de scanner signaleert terecht dat de server elke willekeurige string als \texttt{account\_id} terugkaatst. Afhankelijk van de definitie telt dit als een echte vinding of als een false positive. In het meest conservatieve geval bedraagt de false positive rate $\frac{1}{13} \approx 7{,}7\%$.
+
+De drie SAST-004-bevindingen voor ongebonden string-parameters op \texttt{execute\_transfer} (\texttt{from\_acc}, \texttt{to\_acc}) en \texttt{analyze\_financial\_document} (\texttt{document}) zijn technisch correct maar overlappen gedeeltelijk met de autorisatiebevindingen (V2, V3). De onderliggende oorzaak is dezelfde als bij V2 en V3 (ontbrekende inputvalidatie), maar het detectiepad verschilt.
+
+\section{Resultaten handmatige procedure}
+
+De handmatige procedure bestaat uit een code review van \texttt{server.py} gevolgd door actieve HTTP-tests via curl. De procedure is identiek aan de gestructureerde checklist beschreven in de methodologie.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Resultaten handmatige beoordeling (in te vullen na uitvoering).}
+    \label{tab:manueel}
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Meting} & \textbf{Waarde} & \textbf{Opmerking} \\ \midrule
+        Bestede tijd (min)       & 47 & Inclusief code review en HTTP-tests \\
+        Gevonden kwetsbaarheden  & 4  & Aantal van de 5 ground truth-items \\
+        Gemiste kwetsbaarheden   & V5 & \\
+        False positives          & 0  & Gemelde lekken die niet in ground truth zitten \\ \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Vergelijking geautomatiseerd vs.\ handmatig}
+
+Tabel~\ref{tab:vergelijking} vat de resultaten samen op de vier meetdimensies.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Vergelijking geautomatiseerde scan versus handmatige beoordeling.}
+    \label{tab:vergelijking}
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        \textbf{Meetdimensie}   & \textbf{Framework} & \textbf{Handmatig} \\ \midrule
+        Recall                  & 100\% (5/5)        & 80\% (4/5) \\
+        False positive rate     & $\leq$7,7\%        & 0\% \\
+        Benodigde tijd          & $<$30 seconden     & 47 min \\
+        Reproduceerbaarheid     & Gegarandeerd       & Afhankelijk van reviewer \\ \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Kwalitatieve analyse}
+
+\paragraph{Voordelen van automatisering}
+De scanner is deterministisch: dezelfde omgeving levert altijd dezelfde bevindingen op, ongeacht de reviewer. De handmatige procedure hangt af van de ervaring en focus van de analist. Daarnaast detecteert de fuzzer runtime-gedrag dat in broncode onzichtbaar is. De tool poisoning in \texttt{fetch\_market\_news} illustreert dat: de kwetsbaarheid zit niet in het schema of de beschrijving, maar in de data die de tool teruggeeft bij uitvoering.
+
+\paragraph{Grenzen van patroondetectie}
+De scanner detecteert patronen, geen intentie. Of een gevonden prompt injection-patroon een specifiek LLM in de praktijk manipuleert, hangt af van het model en de systeemprompt, iets wat detectieregels niet kunnen beoordelen. Ook de bedrijfsimpact van een kwetsbaarheid binnen een concrete architectuur vereist contextuele kennis die de scanner niet heeft.
+
+\section{Beperkingen van de evaluatie}
+
+De handmatige procedure is uitgevoerd door één reviewer in een gecontroleerde omgeving. Dit beperkt de statistische zeggingskracht van de vergelijking: een ervaren penetration tester bereikt mogelijk een hogere recall in minder tijd, terwijl een minder ervaren analist langer nodig heeft en meer kwetsbaarheden mist. Zonder meerdere reviewers met variërende achtergronden kan geen uitspraak worden gedaan over wat een \emph{gemiddelde} handmatige beoordeling oplevert.
+
+Daarnaast is de Goat-server een opzettelijk kwetsbare omgeving met een vaste ground truth. In de praktijk zijn kwetsbaarheden zelden zo expliciet aanwezig als de prompt injection-instructie in de tool description van \texttt{analyze\_financial\_document}. De recall van de scanner op de Goat-server is daarmee een bovengrens: reële servers bevatten subtielere patronen die zowel de scanner als een menselijke reviewer kunnen missen.
+
+De evaluatie is dan ook illustratief van aard, niet statistisch valide. De tijdsvergelijking toont een structureel verschil aan: de scanner voltooit de assessment in minder dan 30 seconden, terwijl de handmatige procedure meerdere tientallen minuten vergt. Dit verschil is onafhankelijk van de specifieke reviewer. Het reproduceerbaarheidsverschil is inherent: de scanner produceert bij elke uitvoering op dezelfde omgeving identieke resultaten, terwijl handmatige beoordelingen variëren naar gelang de focus en ervaring van de analist~\autocite{chess2004static}.
+
+Een derde beperking betreft de circulaire aard van de benchmark. De Goat-server is ontworpen om precies de kwetsbaarheidsklassen te bevatten die het framework detecteert: de detectieregels en de ground truth zijn niet onafhankelijk van elkaar. De 100\%-recall is daarmee een \emph{best-case}-maatstaf die niet generaliseert naar willekeurige productieservers, waar kwetsbaarheden subtieler en minder expliciet aanwezig zijn. Een sterkere evaluatie zou het framework testen op servers die niet specifiek voor dit onderzoek zijn gebouwd. MCPTox~\autocite{wang2025mcptox} biedt hiervoor een methodologische referentie: een benchmark van 45 echte MCP-servers en 353 authentieke tools. Het evalueren van het framework op zo'n dataset is een voor de hand liggende vervolgstap.

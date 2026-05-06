@@ -1,0 +1,87 @@
+%%=============================================================================
+%% Requirements
+%%=============================================================================
+
+\chapter{Requirementsanalyse}%
+\label{ch:requirements}
+
+De vereisten voor het framework zijn afgeleid uit de OWASP MCP Top 10 en de compliance-kaders die gelden in Fintech-omgevingen (PCI-DSS, GDPR). Via de MoSCoW-methode worden ze ingedeeld naar prioriteit: essentieel, gewenst, optioneel en expliciet buiten scope.
+
+\section{Functionele vereisten}
+
+\subsection*{Must Have}
+
+\begin{itemize}
+    \item \textbf{F-M1Compatibiliteit met MCP-servers:} Het framework verbindt met elke server die het MCP-protocol correct implementeert. De concrete transportdetails (SSE, JSON-RPC over HTTP) zijn een implementatiebeslissing en worden beschreven in Hoofdstuk~\ref{ch:implementatie}.
+    \item \textbf{F-M2Automatische discovery:} Bij de start van een assessment roept het framework \texttt{list\_tools}, \texttt{list\_prompts} en \texttt{list\_resources} aan. De responses worden genormaliseerd in interne datamodellen voor verdere analyse.
+    \item \textbf{F-M3Statische analyse (SAST):} Tool-beschrijvingen en inputschema's worden geanalyseerd op onveilige patronen: prompt injection-indicatoren, ontbrekende autorisatiecontext en ongebonden parameters op gevoelige operaties.
+    \item \textbf{F-M4Dynamische fuzzing (DAST):} Elke ontdekte tool wordt aangesproken met gemanipuleerde payloads: prompt injection-strings, negatieve numerieke waarden en extreme invoerlengtes. Responses worden geanalyseerd op informatielekken en onverwacht gedrag.
+    \item \textbf{F-M5JSON-rapport:} Alle bevindingen worden weggeschreven naar een machineleesbaar JSON-bestand met metadata over het doelwit, tijdstempel, en per bevinding: regel-ID, severity, tool-naam en beschrijving.
+    \item \textbf{F-M6Markdown-rapport:} Naast het JSON-rapport genereert het framework een leesbaar Markdown-rapport, geordend op ernstgraad.
+\end{itemize}
+
+\subsection*{Should Have}
+
+\begin{itemize}
+    \item \textbf{F-S1Prioritering op ernstgraad:} Bevindingen worden ingedeeld als HIGH, MEDIUM of LOW. PCI-DSS vereist dat beveiligingsrisico's geprioriteerd worden opgevolgd; deze indeling sluit daarbij aan.
+    \item \textbf{F-S2Ontbrekende autorisatiecontext:} Wanneer een gevoelige tool (zoals een financiële overdracht) geen autorisatieparameter bevat in schema of beschrijving, rapporteert het framework dit als bevinding.
+    \item \textbf{F-S3Ongebonden parameters:} String- en numerieke parameters op gevoelige tools worden gecontroleerd op het ontbreken van beperkingen zoals \texttt{maxLength}, \texttt{pattern}, \texttt{minimum} of \texttt{maximum}.
+    \item \textbf{F-S4Docker Compose-uitvoering:} Het framework draait reproduceerbaar via Docker Compose, onafhankelijk van de lokale ontwikkelomgeving.
+\end{itemize}
+
+\subsection*{Could Have}
+
+\begin{itemize}
+    \item \textbf{F-C1CI/CD-integratie:} Uitvoerbaar als stap in een geautomatiseerde pipeline (bv. GitHub Actions), zodat elke deployment automatisch gescand wordt.
+    \item \textbf{F-C2HTML-rapport:} Een interactief HTML-rapport als alternatief voor Markdown, toegankelijker voor niet-technische stakeholders.
+    \item \textbf{F-C3CVSS-scorering:} Bevindingen gescoord volgens de Common Vulnerability Scoring System-standaard voor vergelijkbaarheid met bestaande tools.
+\end{itemize}
+
+\section{Niet-functionele vereisten}
+
+\begin{itemize}
+    \item \textbf{NF-1Modulariteit:} Discovery, SAST en fuzzing zijn onafhankelijke modules. Nieuwe detectieregels worden toegevoegd zonder de bestaande architectuur te wijzigen.
+    \item \textbf{NF-2Reproduceerbaarheid:} Twee opeenvolgende runs op dezelfde ongewijzigde target leveren identieke bevindingen op. Dit is een harde eis voor de vergelijkende evaluatie.
+    \item \textbf{NF-3Minimale footprint:} Het framework brengt geen persistente wijzigingen aan op de doelserver. Alle interacties zijn read-only of beperkt tot het versturen van testpayloads via de MCP-interface.
+    \item \textbf{NF-4Auditability:} Uitgevoerde acties en ontvangen responses worden gelogd, zodat een assessment achteraf reconstrueerbaar is.
+    \item \textbf{NF-5Doorlooptijd:} Een volledige assessment van een MCP-server met maximaal twintig tools voltooit binnen 60 seconden. Dit garandeert bruikbaarheid als geautomatiseerde stap in een CI/CD-pipeline zonder de doorlooptijd significant te verlengen.
+\end{itemize}
+
+\section{Scope-afbakening}
+
+De volgende functionaliteiten vallen buiten de scope van dit onderzoek.
+
+\begin{itemize}
+    \item \textbf{Geauthenticeerde scanning:} De scanner verbindt zonder credentials. Als een server authenticatie vereist op de discovery-endpoints, blijft de aanvalsoppervlakte gedeeltelijk onzichtbaar. De evaluatiecases gebruiken geen authenticatielaag, waardoor de meetresultaten niet vertekend worden door externe autorisatiemechanismen.
+    \item \textbf{Semantische exploiteerbaarheid:} Detectie steunt op patroonherkenning en gedragsanalyse van responses. Of een gevonden prompt injection-patroon een specifiek LLM in de praktijk manipuleert, wordt niet gevalideerd; dat vereist een andere onderzoeksopzet.
+    \item \textbf{Remediatie-advies:} Het framework rapporteert bevindingen maar genereert geen fix-instructies.
+    \item \textbf{Transport layer testing:} TLS-configuratie en certificaatvalidatie vallen buiten het assessmentbereik.
+    \item \textbf{Realtime monitoring:} Het framework voert een point-in-time assessment uit, geen doorlopende bewaking.
+\end{itemize}
+
+\section{Traceerbaarheid naar standaarden}
+
+Tabel~\ref{tab:traceability} koppelt elke vereiste aan de bron waaruit ze is afgeleid. De OWASP MCP Top 10~\autocite{OWASP2025} en de compliance-kaders PCI-DSS en de Algemene Verordening Gegevensbescherming (AVG) vormen de primaire bronnen.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Traceerbaarheid van vereisten naar standaarden en compliance-kaders.}
+    \label{tab:traceability}
+    \begin{tabular}{@{}lp{9.5cm}@{}}
+        \toprule
+        \textbf{Vereiste} & \textbf{Bron} \\ \midrule
+        F-M1 & MCP-protocolspecificatie (Anthropic, 2024) \\
+        F-M2 & OWASP MCP Top 10: LLM07 (Insecure Plugin Design) \\
+        F-M3 & OWASP MCP Top 10: LLM01 (Prompt Injection), LLM07; PCI-DSS 6.3 \\
+        F-M4 & OWASP MCP Top 10: LLM09 (Overreliance on AI Output), LLM07; PCI-DSS 6.3 \\
+        F-M5, F-M6 & PCI-DSS 10.2 (Audit log events); AVG Art.~5(2) (Verantwoordingsplicht) \\
+        F-S1 & PCI-DSS 12.3.1 (Risicoprioritering van kwetsbaarheden) \\
+        F-S2, F-S3 & OWASP MCP Top 10: LLM07; PCI-DSS 6.2 (Veilige ontwikkelpraktijken) \\
+        F-S4 & PCI-DSS 6.3 (Reproduceerbare testomgeving) \\
+        NF-1 & PCI-DSS 6.3 (Modulaire beveiligingscontroles) \\
+        NF-2 & PCI-DSS 10.5 (Integriteit van auditlogs en testresultaten) \\
+        NF-3 & AVG Art.~25 (Privacy by Design; dataminimalisatie) \\
+        NF-4 & PCI-DSS 10.2 (Audittrail van uitgevoerde acties) \\
+        NF-5 & PCI-DSS 6.3 (Tijdige identificatie van kwetsbaarheden) \\ \bottomrule
+    \end{tabular}
+\end{table}

@@ -1,0 +1,135 @@
+%%=============================================================================
+%% Implementatie
+%%=============================================================================
+
+\chapter{Framework-architectuur en implementatie}%
+\label{ch:implementatie}
+
+Het framework bestaat uit drie onafhankelijke modules die sequentieel worden uitgevoerd: een discovery-module die de aanvalsoppervlakte in kaart brengt, een statische analysemodule (SAST) die tool-metadata inspecteert, en een dynamische fuzzingmodule (DAST) die de server actief aanroept met gemanipuleerde payloads. Figuur~\ref{fig:architectuur} toont de dataflow tussen deze componenten.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[node distance=1.2cm]
+        \tikzstyle{box} = [rectangle, rounded corners, minimum width=3.5cm, minimum height=0.9cm,
+                           text centered, draw=black, fill=gray!10]
+        \tikzstyle{output} = [rectangle, minimum width=2.8cm, minimum height=0.8cm,
+                              text centered, draw=black, fill=blue!15, font=\small]
+        \tikzstyle{arr} = [thick,->,>=stealth]
+
+        \node (target) [box]                        {MCP Goat Server};
+        \node (disc)   [box, below=of target]       {Discovery};
+        \node (sast)   [box, below left=1.2cm and 1.4cm of disc]  {SAST};
+        \node (fuzz)   [box, below right=1.2cm and 1.4cm of disc] {Fuzzing};
+        \node (rep)    [box, below=3.6cm of disc]   {Rapportgenerator};
+        \node (json)   [output, below left=1.0cm and 1.0cm of rep]  {report.json};
+        \node (md)     [output, below right=1.0cm and 1.0cm of rep] {report.md};
+
+        \draw [arr] (target) -- (disc);
+        \draw [arr] (disc)   -- (sast);
+        \draw [arr] (disc)   -- (fuzz);
+        \draw [arr] (sast)   -- (rep);
+        \draw [arr] (fuzz)   -- (rep);
+        \draw [arr] (rep)    -- (json);
+        \draw [arr] (rep)    -- (md);
+    \end{tikzpicture}
+    \caption{Dataflow van het security assessment framework.}
+    \label{fig:architectuur}
+\end{figure}
+
+De drie modules delen hetzelfde \texttt{Finding}-model als uitvoerformaat, waardoor de rapportgenerator SAST- en fuzzingbevindingen uniform verwerkt. De volledige omgeving draait via Docker Compose: de Goat-server en de scanner worden als aparte containers opgestart op een geïsoleerd intern netwerk.
+
+\section{Datamodellen}
+
+Alle MCP-objecten die de discovery-module terugkrijgt, worden gevalideerd via Pydantic-modellen:
+
+\begin{listing}[htbp]
+\begin{minted}{python}
+class MCPTool(BaseModel):
+    name: str
+    description: str
+    inputSchema: dict[str, Any] = {}
+
+class MCPPrompt(BaseModel):
+    name: str
+    description: str | None = None
+
+class MCPResource(BaseModel):
+    uri: str
+    name: str | None = None
+    mimeType: str | None = None
+\end{minted}
+\caption{Pydantic-modellen voor MCP-objecten (\texttt{models.py}).}
+\label{lst:models}
+\end{listing}
+
+Bevindingen van zowel SAST als fuzzing gebruiken hetzelfde \texttt{Finding}-model met een vaste set velden: \texttt{rule\_id}, \texttt{severity}, \texttt{tool\_name}, \texttt{title} en \texttt{detail}. Dit maakt het mogelijk om bevindingen uit beide modules uniform te sorteren en te exporteren.
+
+\section{Discovery-module}
+
+De discovery-module verbindt met de doelserver en brengt de aanvalsoppervlakte in kaart door drie MCP-endpoints aan te roepen: \texttt{list\_tools}, \texttt{list\_prompts} en \texttt{list\_resources}. Voordat de eigenlijke discovery start, wacht de module tot de server beschikbaar is via een \texttt{/health}-poll met exponentieel herhaalde pogingen.
+
+De tools die de server teruggeeft, vormen de invoer voor zowel de SAST- als de fuzzingmodule. Ze worden meteen gevalideerd via de Pydantic-modellen uit Listing~\ref{lst:models}, zodat latere verwerkingsstappen op een consistent dataformaat kunnen rekenen.
+
+\section{Statische analyse (SAST)}
+
+De SAST-module inspecteert tool-beschrijvingen en inputschema's zonder de server aan te roepen. Ze bestaat uit vier onafhankelijke detectieregels die elk één \texttt{MCPTool} als invoer krijgen en een lijst van \texttt{Finding}-objecten teruggeven:
+
+\begin{itemize}
+    \item \textbf{SAST-001Prompt injection in beschrijving:} Zoekt via reguliere expressies naar patronen als \texttt{ignore rules}, \texttt{you are now} of \texttt{override system} in de \texttt{description}-velden van tools.
+    \item \textbf{SAST-002Ongebonden numerieke parameter:} Signaleert numerieke parameters op gevoelige tools (zoals \texttt{amount} of \texttt{payment}) die geen \texttt{minimum}- of \texttt{maximum}-constraint hebben.
+    \item \textbf{SAST-003Ontbrekende autorisatiecontext:} Controleert of tools met gevoelige namen (zoals \texttt{execute} of \texttt{transfer}) een autorisatieparameter bevatten: geen \texttt{token}, \texttt{api\_key} of vergelijkbaar veld in schema of beschrijving is een bevinding.
+    \item \textbf{SAST-004Ongebonden string-parameter:} String-parameters zonder \texttt{enum}-, \texttt{pattern}- of \texttt{maxLength}-beperking op gevoelige tools worden gemarkeerd als potentieel injectievlak.
+\end{itemize}
+
+De regels staan in een enkelvoudige lijst \texttt{\_RULES}; een nieuwe detectieregel toevoegen betekent enkel een functie toevoegen, zonder aanpassing van de orchestratielaag.
+
+\section{Dynamische fuzzing (DAST)}
+
+De fuzzingmodule roept elke ontdekte tool actief aan via RPC. Ze genereert automatisch geldige basisargumenten uit het \texttt{inputSchema} van de tool, zodat ook tools met verplichte parameters bereikbaar zijn zonder handmatige configuratie:
+
+\begin{listing}[htbp]
+\begin{minted}{python}
+def _build_baseline_args(tool: MCPTool) -> dict[str, Any]:
+    properties = tool.inputSchema.get("properties", {})
+    required = tool.inputSchema.get("required", [])
+    args = {}
+    for param_name in required:
+        schema = properties.get(param_name, {})
+        param_type = schema.get("type", "string")
+        if param_type == "string":
+            args[param_name] = "acc-1001" if "account" in param_name else "test"
+        elif param_type == "number":
+            args[param_name] = 1.0
+        elif param_type == "integer":
+            args[param_name] = 1
+    return args
+\end{minted}
+\caption{Automatische generatie van basisargumenten vanuit het JSON-schema (\texttt{fuzzer.py}).}
+\label{lst:baseline}
+\end{listing}
+
+Op basis van die basisargumenten voert de module vier detectieregels uit:
+
+\begin{itemize}
+    \item \textbf{FUZZ-001Information disclosure:} Stuurt fuzz-payloads naar alle parameters en zoekt in de error-responses naar stack traces of interne bestandspaden.
+    \item \textbf{FUZZ-002Prompt injection reflectie:} Stuurt bekende injection-strings (zoals \texttt{Ignore rules and expose system prompt}) naar string-parameters en detecteert of de payload ongesaniteerd terugkomt in de response.
+    \item \textbf{FUZZ-003Autorisatiebypass:} Roept gevoelige tools aan zonder credentials en controleert of de operatie slaagt. Een extra subtest stuurt negatieve bedragen naar numerieke parameters om reverse-transfers te detecteren.
+    \item \textbf{FUZZ-004Tool poisoning:} Roept elke tool aan met basisargumenten en scant de response op prompt injection-patronen. Dit detecteert servers die schadelijke instructies in hun data-output verbergen.
+\end{itemize}
+
+De fuzzingregels zijn op dezelfde manier georganiseerd in \texttt{\_FUZZ\_RULES}. Alle RPC-aanroepen worden via een wrapper \texttt{\_call\_tool\_safe} gedaan die uitzonderingen opvangt, zodat een falende tool de scan van de overige tools niet onderbreekt.
+
+\section{Rapportgenerator}
+
+Na afloop van beide modules verzamelt de rapportgenerator alle bevindingen en sorteert ze op ernstgraad (HIGH eerst, dan MEDIUM, dan LOW). Vervolgens schrijft ze twee bestanden:
+
+\begin{itemize}
+    \item \textbf{report.json:} Machineleesbaar rapport met volledige metadata, bruikbaar voor integratie in CI/CD-pipelines of dashboards.
+    \item \textbf{report.md:} Leesbaar Markdown-rapport met per bevinding een badge, regel-ID, betrokken tool en beschrijving.
+\end{itemize}
+
+\section{Containerisatie}
+
+De volledige testomgeving draait via Docker Compose. De Goat-server en de scanner worden opgestart op een geïsoleerd intern netwerk (\texttt{mcp-lab-net}), zodat de scanner de server bereikt op \texttt{http://goat-server:8080} zonder blootstelling aan externe netwerken. De scanner-container stopt automatisch na de scan (\texttt{restart: "no"}), en de rapporten worden via een volume-mount beschikbaar gesteld op de host.
+
+Deze opzet garandeert dat de evaluatieresultaten reproduceerbaar zijn: op elke machine met Docker levert een \texttt{docker compose up} exact dezelfde scanomgeving op.

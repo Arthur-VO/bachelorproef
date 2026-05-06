@@ -7,7 +7,7 @@
 
 % Pas na deze inleidende paragraaf komt de eerste sectiehoofding.
 
-Dit hoofdstuk geeft een overzicht van de relevante literatuur die de basis vormt voor dit onderzoek. Eerst wordt de context geschetst van MCP-integraties in de Fintech-sector en de bijhorende beveiligingsrisico's. Vervolgens wordt de bestaande taxonomie van kwetsbaarheden besproken, waarna de huidige stand van zaken rond validatiemethoden en tooling wordt geanalyseerd. Dit hoofdstuk sluit af met een onderbouwing van de onderzoeksnood die de basis vormt voor de methodologie in Hoofdstuk~\ref{ch:methodologie}.
+De beveiligingsrisico's van MCP-integraties in de financiële sector zijn pas goed te begrijpen tegen de achtergrond van hoe het protocol werkt en welke aanvalsvectoren het introduceert. Dit hoofdstuk brengt die context in kaart op basis van recente literatuur, en werkt toe naar de onderzoeksnood die de grondslag vormt voor de methodologie in Hoofdstuk~\ref{ch:methodologie}.
 
 \section{Opkomst en risico's van MCP in Fintech}
 
@@ -17,7 +17,9 @@ De complexiteit van deze implementaties introduceert specifieke beveiligingsrisi
 
 \section{Classificatie van kwetsbaarheden}
 
-Om de grote hoeveelheid aan risico's te categoriseren, zijn er initiatieven gestart om de meest kritieke lekken in kaart te brengen. \textcite{OWASP2025} hebben een lijst van de "Top 10 MCP vulnerabilities" opgesteld, waarin onder andere \emph{tool poisoning} en het gebrek aan degelijke audit logging als prominente risico's worden bestempeld. Voor fintech-bedrijven, die met gevoelige persoons- en transactiegegevens werken, vormen deze specifieke kwetsbaarheden een direct risico op datalekken en compliance-schendingen. De OWASP-taxonomie onderscheidt zich door MCP-specifieke aanvalsvectoren te categoriseren die niet worden gedekt door algemene beveiligingsframeworks zoals de OWASP Top 10 voor webapplicaties, waardoor deze lijst een essentiële referentie vormt voor dit onderzoek.
+\textcite{OWASP2025} brachten de meest kritieke risico's in kaart in hun "Top 10 MCP vulnerabilities", met onder andere \emph{tool poisoning} en het gebrek aan degelijke audit logging als prominente bevindingen. Voor fintech-bedrijven, die met gevoelige persoons- en transactiegegevens werken, vormen deze specifieke kwetsbaarheden een direct risico op datalekken en compliance-schendingen. De OWASP-taxonomie categoriseert aanvalsvectoren die specifiek zijn voor MCP en die algemene frameworks zoals de OWASP Top 10 voor webapplicaties niet dekken. Daarmee is ze de primaire referentie voor dit onderzoek.
+
+\textcite{hou2025mcplandscape} bieden een aanvullende taxonomie die MCP-dreigingen indeelt in vier aanvalstypen --- kwaadwillende ontwikkelaars, externe aanvallers, misbruikende gebruikers en structurele implementatiefouten --- verdeeld over 16 concrete bedreigingsscenario's. Het framework in dit onderzoek richt zich primair op de eerste en vierde categorie: kwetsbaarheden die een ontwikkelaar onbewust introduceert in tool-beschrijvingen en inputschema's. \textcite{huang2026mcpthreatmodeling} tonen via STRIDE-dreigingsmodellering aan dat de meeste MCP-clients geen statische validatie uitvoeren op ontvangen tool-metadata, wat precies de lacune is die de SAST-module in dit onderzoek opvult.
 
 \section{Status Quo: Beperkingen van handmatige validatie}
 
@@ -25,12 +27,20 @@ Ondanks de ernst van de dreigingen, ontbreken er momenteel gestandaardiseerde me
 
 Bestaande tools bieden slechts gedeeltelijke oplossingen. Hoewel er open-source initiatieven zijn, zoals de scanning tool van \textcite{Invariant2025}, ontbreekt vaak een integratie in een breder security framework dat geschikt is voor enterprise-omgevingen. Bedrijven vallen hierdoor vaak terug op algemene tools zoals Burp Suite of Semgrep die de context-specifieke logica van MCP niet volledig begrijpen. Burp Suite is bijvoorbeeld ontworpen voor HTTP-gebaseerde API-testing en kan de JSON-RPC-communicatie van MCP wel onderscheppen, maar mist de semantische kennis om te herkennen wanneer een tool-beschrijving beveiligingsproblemen introduceert. Semgrep kan wel patronen in code detecteren, maar is niet geëquipeerd om de runtime-interactie tussen AI-agents en MCP-servers te analyseren. Dit vergroot het risico dat MCP-servers in productie worden gebracht zonder grondige veiligheidsbeoordeling.
 
-Het ontbreken van een geautomatiseerd, gestructureerd framework dat specifiek is ontworpen voor de nuances van MCP-servers, vormt het centrale hiaat in de huidige literatuur en praktijk.
+Het ontbreken van zo'n framework is de blinde vlek in zowel de literatuur als de praktijk.
+
+\section{Bestaande tools voor MCP-beveiligingstesting}
+
+Er bestaan al enkele MCP-specifieke tools die gedeeltelijke dekking bieden. De meest directe is MCPSafetyScanner, ontwikkeld door \textcite{radosevich2025mcpsafetyaudit}. MCPSafetyScanner hanteert een agentische benadering: een LLM-agent genereert adversariale testscenario's en evalueert de respons van de doelserver. Dit maakt de tool contextbewust en flexibel in de keuze van testcases, maar ook niet-deterministisch: twee opeenvolgende runs op dezelfde server kunnen verschillende bevindingen opleveren, afhankelijk van het gedrag van het onderliggende model. Bovendien vereist de tool een actieve API-verbinding met een extern taalmodel, wat in gereguleerde fintech-omgevingen toestemmings- en dataprivacyvraagstukken meebrengt.
+
+Het framework in dit onderzoek kiest bewust voor een deterministische aanpak. Patroonherkenning op basis van vaste detectieregels en vooraf gedefinieerde fuzzingpayloads vervangen de LLM-redenering van MCPSafetyScanner. Dit gaat ten koste van semantische flexibiliteit, maar garandeert reproduceerbaarheid (NF-2) en volledige onafhankelijkheid van externe diensten.
+
+Een complementaire benadering biedt MCPTox~\autocite{wang2025mcptox}: een benchmark van 45 echte MCP-servers en 353 authentieke tools waarmee de robuustheid van \emph{LLM-agenten} tegen tool poisoning wordt gemeten. MCPTox rapporteert een aanvalssuccesratio van 72{,}8\% op o1-mini, wat de ernst van tool poisoning in productieomgevingen empirisch aantoont. Belangrijk is het onderscheid in evaluatieperspectief: MCPTox test of een model bestand is tegen een aanval, terwijl het framework in dit onderzoek test of een server de aanvalsvector \emph{bevat}. Beide perspectieven zijn complementair voor een volledig veiligheidsbeeld.
 
 \section{Geautomatiseerde beveiligingstesting als oplossing}
 
 Om de beperkingen van handmatige validatie te overbruggen, biedt de softwarebeveiligingsliteratuur een spectrum aan geautomatiseerde testmethoden. \emph{Static Application Security Testing} (SAST) analyseert broncode zonder uitvoering, wat het geschikt maakt voor vroege detectie van onveilige patronen in tool-beschrijvingen en configuratiebestanden \autocite{chess2004static}. \emph{Dynamic Application Security Testing} (DAST) test een draaiende applicatie door gemanipuleerde invoer te sturen en de respons te observeren. Deze aanpak is direct toepasbaar op de JSON-RPC-interface van MCP-servers. \emph{Fuzzing} ten slotte genereert automatisch grote volumes onverwachte of grensgevallen-invoer om onvoorziene kwetsbaarheden bloot te leggen \autocite{manes2019art}.
 
-In de context van MCP zijn deze methoden complementair: SAST detecteert statische patronen in tool-metadata en configuratiebestanden, terwijl DAST en fuzzing runtime-gedrag blootleggen dat niet uit de broncode alleen af te leiden is. Zo kunnen gemanipuleerde tool-beschrijvingen pas tijdens uitvoering hun effect tonen op het gedrag van een agent. Een framework dat deze drie benaderingen combineert, dekt zowel de statische als de dynamische aanvalsvlakken van MCP-servers.
+Toegepast op MCP vullen deze drie methoden elkaar aan: SAST detecteert statische patronen in tool-metadata en configuratiebestanden, terwijl DAST en fuzzing runtime-gedrag blootleggen dat niet uit de broncode alleen af te leiden is. Zo kunnen gemanipuleerde tool-beschrijvingen pas tijdens uitvoering hun effect tonen op het gedrag van een agent. Een framework dat deze drie benaderingen combineert, dekt zowel de statische als de dynamische aanvalsvlakken van MCP-servers.
 
 

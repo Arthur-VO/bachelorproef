@@ -63,48 +63,28 @@ Dit onderzoek hanteert een empirisch-technische aanpak op basis van experimentel
 
 \section{Fase 1: Literatuurstudie en classificatie van dreigingen}
 
-\textbf{Onderzoekstechniek:} Literatuurstudie. \\
-Het onderzoek start met een diepgaande analyse van de technische specificaties van het Model Context Protocol (MCP). Er wordt gebruikgemaakt van academische databanken (zoals Google Scholar, IEEE Xplore en arXiv) en officiële technische documentatie om de architectuur en datastromen te doorgronden. Specifiek wordt gezocht naar bestaande taxonomieën van AI-kwetsbaarheden (zoals de OWASP Top 10 voor LLM's) en hoe deze zich vertalen naar de MCP-context.
-
-\textbf{Doel:} Het opstellen van een specifieke taxonomie van kwetsbaarheden (zoals prompt injection, tool poisoning en privilege escalation) die relevant zijn voor de financiële sector.
-
-\textbf{Tools:} BiBTex voor referentiebeheer, LaTeX voor documentatie. \\
-\textbf{Tijdschatting:} 4 weken. \\
-\textbf{Deliverable:} Hoofdstuk 'Literatuurstudie' met een gedefinieerd dreigingsmodel.
+De eerste fase bestaat uit een literatuurstudie via academische databanken (Google Scholar, IEEE Xplore, arXiv) en officiële technische documentatie. De architectuur en datastromen van MCP worden doorgrond, en bestaande taxonomieën van AI-kwetsbaarheden --- zoals de OWASP Top 10 voor LLM's --- worden geanalyseerd op relevantie voor de MCP-context. Het concrete doel is een kwetsbaarheidstaxonomie opstellen voor prompt injection, tool poisoning en privilege escalation in financiële toepassingen. De resultaten vormen het hoofdstuk Stand van zaken. Geschatte doorlooptijd: vier weken.
 
 \section{Fase 2: Requirementsanalyse voor Fintech-toepassingen}
 
-\textbf{Onderzoekstechniek:} Documentanalyse en functionele analyse. \\
-In plaats van interviews of enquêtes, die subjectieve meningen opleveren, wordt er gekeken naar harde compliance-eisen uit de financiële sector (zoals PCI-DSS en GDPR) en best practices voor API-security. Op basis hiervan worden de functionele en niet-functionele vereisten (zoals logging, auditability en toegangscontrole) voor de scanner vastgelegd volgens de MoSCoW-methode.
-
-\textbf{Doel:} Een objectieve lijst van criteria opstellen waaraan het te ontwikkelen framework moet voldoen om inzetbaar te zijn in een enterprise-omgeving.
-
-\textbf{Tools:} Requirements management templates. \\
-\textbf{Tijdschatting:} 2 weken. \\
-\textbf{Deliverable:} Een geprioriteerde lijst van requirements.
+De requirementsanalyse steunt op documentanalyse van compliance-kaders (PCI-DSS, GDPR) en API-security best practices, niet op interviews of enquêtes. Die keuze is bewust: harde compliance-eisen leveren objectievere criteria op dan subjectieve meningen. De functionele en niet-functionele vereisten --- waaronder logging, auditability en toegangscontrole --- worden ingedeeld via de MoSCoW-methode en gedocumenteerd in het hoofdstuk Requirementsanalyse. Geschatte doorlooptijd: twee weken.
 
 \section{Fase 3: Ontwerp en implementatie van het assessment framework}
 
-\textbf{Onderzoekstechniek:} Prototyping en iteratieve softwareontwikkeling (PoC). \\
-Dit is de technisch meest complexe fase waarin het artefact daadwerkelijk wordt gebouwd. De scanner wordt modulair opgezet om flexibiliteit te garanderen. De technische realisatie gebeurt in Python vanwege de uitgebreide ondersteuning voor JSON-RPC en asynchrone communicatie, essentieel voor MCP.
+In de derde fase wordt het framework gebouwd als een modulaire Python-applicatie. Python is gekozen vanwege de native ondersteuning voor JSON-RPC en asynchrone communicatie, beide vereist voor MCP. Het framework bestaat uit drie kerncomponenten:
 
-Het framework bestaat uit drie kerncomponenten:
 \begin{enumerate}
     \item \textbf{Discovery Module:} Analyseert de \texttt{list\_tools} en \texttt{list\_prompts} endpoints.
     \item \textbf{Static Analysis Engine:} Scant tool-beschrijvingen op onveilige patronen.
     \item \textbf{Dynamic Probing Engine:} Voert actieve fuzzing uit met gemanipuleerde payloads.
 \end{enumerate}
 
-\textbf{Tools:} Python 3.12+, Docker (voor containerisatie), Git (versiebeheer), Pydantic (data validatie), `mcp`-library. \\
-\textbf{Tijdschatting:} 6 weken. \\
-\textbf{Deliverable:} Een werkende Proof of Concept (PoC) van de scanner, gepubliceerd als open-source code op GitHub.
+De implementatie maakt gebruik van Python~3.12, Docker, Pydantic en de officiële \texttt{mcp}-library. Het resultaat is een werkende Proof of Concept gepubliceerd als open-source code op GitHub. Geschatte doorlooptijd: zes weken.
 
 \section{Fase 4: Validatie via een 'Vulnerable MCP Server'}
 
-\textbf{Onderzoekstechniek:} Experimentele validatie en vergelijkende studie. \\
-Omdat er weinig publieke testdata is, wordt een eigen testomgeving ontwikkeld: de 'Fintech MCP Goat'. Dit is een opzettelijk onveilige MCP-server die financiële use-cases nabootst (bv. saldo opvragen, overschrijving starten).
+Omdat er weinig publieke testdata beschikbaar is, wordt een eigen testomgeving ontwikkeld: de \emph{Fintech MCP Goat}, een opzettelijk kwetsbare MCP-server die financiële scenario's nabootst (saldo opvragen, overschrijving starten). Deze server dient als gecontroleerde \emph{ground truth}. Parallel wordt een gestructureerde handmatige beoordelingsprocedure vastgelegd als checklist, zodat de vergelijking reproduceerbaar is. Per testscenario worden vier grootheden gemeten:
 
-Deze omgeving dient als 'ground truth'. Om een eerlijke vergelijking met handmatig werk mogelijk te maken, wordt een concrete handmatige procedure vastgelegd in de vorm van een checklist met een gedetailleerd stappenplan. Vervolgens worden meerdere testscenario's met ingebouwde kwetsbaarheden opgezet. Per scenario wordt systematisch gemeten:
 \begin{itemize}
     \item \textbf{Detectieratio (Recall):} $\frac{\text{Aantal gevonden kwetsbaarheden}}{\text{Totaal aantal aanwezige kwetsbaarheden}}$, gemeten voor zowel de handmatige review als het framework
     \item \textbf{False Positive Rate:} Aantal onterechte alarmen voor beide methoden
@@ -112,9 +92,7 @@ Deze omgeving dient als 'ground truth'. Om een eerlijke vergelijking met handmat
     \item \textbf{Kwalitatieve analyse:} Identificatie waar menselijke expertise beter presteert (contextuele interpretatie) versus waar de tool superieur is (herhaalbaarheid, volledigheid)
 \end{itemize}
 
-\textbf{Tools:} Docker Compose (voor het opzetten van de testlab), Pytest (voor geautomatiseerde testsuites), Burp Suite (voor manuele verificatie van bevindingen). \\
-\textbf{Tijdschatting:} 3 weken. \\
-\textbf{Deliverable:} Validatierapport met meetresultaten en een analyse van de nauwkeurigheid.
+De testomgeving draait via Docker~Compose; Burp~Suite wordt ingezet voor manuele verificatie. Het resultaat is een validatierapport met kwantitatieve meetresultaten. Geschatte doorlooptijd: drie weken.
 
 \section{Overzichtstabel Planning}
 

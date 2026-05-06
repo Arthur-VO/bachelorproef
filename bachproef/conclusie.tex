@@ -5,14 +5,48 @@
 \chapter{Conclusie}%
 \label{ch:conclusie}
 
-% TODO: Trek een duidelijke conclusie, in de vorm van een antwoord op de
-% onderzoeksvra(a)g(en). Wat was jouw bijdrage aan het onderzoeksdomein en
-% hoe biedt dit meerwaarde aan het vakgebied/doelgroep? 
-% Reflecteer kritisch over het resultaat. In Engelse teksten wordt deze sectie
-% ``Discussion'' genoemd. Had je deze uitkomst verwacht? Zijn er zaken die nog
-% niet duidelijk zijn?
-% Heeft het onderzoek geleid tot nieuwe vragen die uitnodigen tot verder 
-%onderzoek?
+Het framework detecteerde alle vijf ingebedde kwetsbaarheden in de Goat-server in minder dan 30 seconden, bij een false positive rate van maximaal 7,7\%. De handmatige procedure vereiste 47 minuten en identificeerde 4 van de vijf kwetsbaarheden. Op basis van de twee evaluatiecases beantwoordt dit onderzoek de hoofdvraag: een geautomatiseerd MCP security assessment framework is realiseerbaar en levert aantoonbaar hogere detectiesnelheid dan een gestructureerde handmatige beoordeling, bij vergelijkbare of betere recall.
 
-\lipsum[76-80]
+\section{Probleemdomein}
 
+De literatuurstudie identificeerde prompt injection, tool poisoning en ontbrekende autorisatiechecks als de meest kritieke kwetsbaarheden voor Fintech-toepassingen. Deze drie categorieën scoren hoog op zowel kans als impact binnen de OWASP MCP Top 10, omdat ze direct raken aan bedrijfskritische processen zoals transactieverwerking en klantidentificatie.
+
+Generieke beveiligingstools zoals Burp Suite en Semgrep dekken deze kwetsbaarheden slechts gedeeltelijk. Burp Suite test HTTP-verkeer maar kent de semantiek van MCP-schema's niet: het herkent geen kwaadaardige tool-beschrijvingen of poisoned responses. Semgrep kan patroonregels uitvoeren maar vereist MCP-specifieke rulesets die bij aanvang van dit onderzoek niet beschikbaar waren.
+
+De handmatige procedure kostte 47 minuten. De voornaamste bronnen van foutmarge zijn aandachtsverlies bij repetitieve checks, inconsistente toepassing van criteria en de afhankelijkheid van de ervaring van de reviewer.
+
+\section{Oplossingsdomein}
+
+Het framework detecteerde 5 van de 5 kwetsbaarheden uit de ground truth (recall 100\%). Van de 13 bevindingen is er één debateerbaar als false positive, wat resulteert in een false positive rate van maximaal 7,7\%. De handmatige beoordeling vond 4 van de vijf kwetsbaarheden (80\%) en produceerde 0 false positives.
+
+Het framework presteert betrouwbaarder voor gedragsmatige kwetsbaarheden die alleen zichtbaar zijn bij runtime. Tool poisoning in \texttt{fetch\_market\_news} is enkel detecteerbaar door de tool effectief aan te roepen en de respons te analyseren; statische analyse alleen is hiervoor onvoldoende. Menselijke expertise blijft noodzakelijk voor de beoordeling van bedrijfsimpact: of een gevonden kwetsbaarheid in een specifieke architectuur exploiteerbaar is, vereist contextuele kennis die regels niet kunnen overnemen.
+
+\section{Kritische reflectie}
+
+De resultaten steunen op twee evaluatiecases. De externe validiteit is daarmee beperkt: uitspraken over MCP-servers in het algemeen zijn op basis van dit onderzoek niet gerechtvaardigd. De Goat-server is opzettelijk kwetsbaar en representeert niet de gemiddelde productieomgeving. De tweede case biedt aanvullende indicaties, maar beide cases samen zijn onvoldoende om generaliseerbare uitspraken te doen.
+
+Het hoge recall-cijfer is deels te verklaren door de aard van de testomgeving: de kwetsbaarheden zijn geselecteerd en geïmplementeerd om detecteerbaar te zijn voor dit type scanner. In een omgeving met subtielere of domeinspecifieke kwetsbaarheden zal de recall waarschijnlijk lager liggen.
+
+Het debateerbare false positive op \texttt{list\_recent\_transactions} illustreert een inherent probleem bij patroondetectie. De scanner kan niet bepalen of een observatie een beveiligingsprobleem vormt zonder domeincontext. Dit vereist altijd een menselijke triage-stap na de geautomatiseerde scan.
+
+\section{Aanbevelingen}
+
+\paragraph{Gebruik het framework als screeningslaag, niet als auditvervanging}
+De scanner identificeert patronen snel en reproduceerbaar, maar kan de bedrijfsimpact van een bevinding niet beoordelen. Of een gevonden autorisatieprobleem exploiteerbaar is binnen een specifieke architectuur, hangt af van netwerktopologie, toegangsbeheer en systeemprompts die buiten het bereik van de scanner liggen. Het debateerbare false positive op \texttt{list\_recent\_transactions} illustreert dat elke geautomatiseerde run gevolgd moet worden door een menselijke triagefase. Het framework vervangt geen security audit; het verlaagt de drempel om die audit gericht te voeren.
+
+\paragraph{Verplicht autorisatiechecks op serverniveau}
+De kwetsbaarheden V2 en V3, het ontbreken van autorisatiecontroles op \texttt{analyze\_financial\_document} en \texttt{execute\_transfer}, vormen het hoogste risico in een Fintech-context. Beide tools gaven toegang tot gevoelige functionaliteit zonder enige verificatie van de aanroeper. Serverimplementaties dienen authenticatie en autorisatie af te dwingen op elke tool die toegang biedt tot transacties, gebruikersgegevens of beheersfuncties, ongeacht of de aanroeper een menselijke gebruiker of een AI-agent is.
+
+\paragraph{Beschouw tool outputs als onvertrouwde invoer}
+De tool poisoning in \texttt{fetch\_market\_news} toont aan dat kwetsbare inhoud niet alleen via parameters binnenkomt, maar ook via de data die een tool teruggeeft. De verborgen injection-payload in de \texttt{content}-string was alleen detecteerbaar door de tool effectief aan te roepen en de response te analyseren. Servers dienen hun outputs te sanitiseren op dezelfde manier als inputs, met name wanneer de respons wordt doorgegeven aan een taalmodel dat de inhoud als instructie kan interpreteren.
+
+\paragraph{Integreer de scanner in het CI/CD-proces}
+Een volledige assessment duurt minder dan 30 seconden. Dit maakt continue beveiligingsmonitoring haalbaar: de scanner kan als stap in een bouwpijplijn worden opgenomen zodat kwetsbaarheden worden gedetecteerd vóór deployment. De gecontaineriseerde opzet via Docker Compose verlaagt de integratiedrempel, omdat de testomgeving identiek is aan de ontwikkelomgeving.
+
+\section{Toekomstig onderzoek}
+
+Dit onderzoek opent drie richtingen voor verder werk. De externe validiteit vraagt om een uitgebreidere evaluatie: een studie met meerdere diverse MCP-servers, inclusief productieomgevingen, zou robuustere uitspraken mogelijk maken over de generaliseerbaarheid van de detectieregels.
+
+CI/CD-integratie ligt als vervolgstap voor de hand. Het framework draait nu als zelfstandige tool; continuous security monitoring vereist dat de scanner ingebouwd wordt in het bouwproces, zodat bevindingen automatisch worden gerapporteerd aan het development team.
+
+Ten slotte blijft de vraag open hoe het framework omgaat met semantische kwetsbaarheden die afhangen van de systeemprompt van het onderliggende taalmodel. Of een prompt injection-patroon een specifiek model in de praktijk manipuleert, is niet deterministisch testbaar met de huidige aanpak. Dit vereist aanvullend onderzoek naar adversarial testing van LLM-agentsystemen.

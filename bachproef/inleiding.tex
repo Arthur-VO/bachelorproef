@@ -10,7 +10,7 @@ De sector van financiële technologie, of Fintech, heeft de afgelopen vijf jaar 
 
 Die standaardisatie heeft echter ook een keerzijde op vlak van beveiliging. Neem een Fintech-bedrijf dat via MCP een AI-agent toegang geeft tot zijn betaalsystemen. Aanvallers kunnen in zo'n opstelling \emph{prompt injection} gebruiken om de instructies van de agent te manipuleren door gewijzigde invoer in het systeem te injecteren. Via \emph{tool poisoning} kunnen zij schadelijke commando's verbergen in schijnbaar legitieme datastromen. En via \emph{privilege escalation} kan een agent door een beveiligingsfout onbedoeld verhoogde toegangsrechten verkrijgen, waardoor kritieke systemen bereikbaar worden voor onbevoegden \autocite{song2025protocolunveilingattackvectors}.
 
-Security-teams beschikken veelal over ontoereikende middelen om MCP-implementaties adequaat te beveiligen tegen deze specifieke dreigingen. De huidige praktijk is afhankelijk van handmatige code-reviews en ad-hoc beveiligingstools die niet specifiek zijn ontworpen voor de technische eigenheid van het Model Context Protocol. Deze algemene beveiligingstools (zoals Burp Suite voor API-testing of Semgrep voor code-analyse) missen de nodige contextuele kennis om MCP-specifieke kwetsbaarheden, zoals gemanipuleerde tool-\hspace{0pt}beschrijvingen of onveilige JSON-RPC-communicatie, systematisch te detecteren. Dit gebrek aan gespecialiseerde tooling creëert een bottleneck in het ontwikkelproces: ofwel vertraagt innovatie door langdurige handmatige beveiligingscontroles, ofwel worden MCP-servers in productie gebracht zonder grondige veiligheidsbeoordeling. De urgentie van deze problematiek wordt onderstreept door recent onderzoek, waaruit blijkt dat 56\% van de ondernemingen die AI-agents inzetten, beveiligingsincidenten rapporteert in hun MCP-omgevingen \autocite{guo2025systematicanalysismcpsecurity}. Dit onderzoek ontwikkelt een geautomatiseerd en gestandaardiseerd security assessment framework dat specifiek op MCP-implementaties is afgestemd.
+Security-teams hebben doorgaans te weinig middelen om MCP-implementaties grondig te beveiligen tegen deze specifieke dreigingen. De huidige praktijk is afhankelijk van handmatige code-reviews en ad-hoc beveiligingstools die niet specifiek zijn ontworpen voor de technische eigenheid van het Model Context Protocol. Deze algemene beveiligingstools (zoals Burp Suite voor API-testing of Semgrep voor code-analyse) missen de nodige contextuele kennis om MCP-specifieke kwetsbaarheden, zoals gemanipuleerde tool-\hspace{0pt}beschrijvingen of onveilige JSON-RPC-communicatie, systematisch te detecteren. Dit gebrek aan gespecialiseerde tooling creëert een bottleneck in het ontwikkelproces: ofwel vertraagt innovatie door langdurige handmatige beveiligingscontroles, ofwel worden MCP-servers in productie gebracht zonder grondige veiligheidsbeoordeling. Dat 56\% van de ondernemingen die AI-agents inzetten beveiligingsincidenten rapporteert in hun MCP-omgevingen maakt de urgentie concreet \autocite{guo2025systematicanalysismcpsecurity}. Dit onderzoek bouwt een security assessment framework dat MCP-servers automatisch en systematisch test.
 
 
 %De inleiding moet de lezer net genoeg informatie verschaffen om het onderwerp te begrijpen en in te zien waarom de onderzoeksvraag de moeite waard is om te onderzoeken. In de inleiding ga je literatuurverwijzingen beperken, zodat de tekst vlot leesbaar blijft. Je kan de inleiding verder onderverdelen in secties als dit de tekst verduidelijkt. Zaken die aan bod kunnen komen in de inleiding~\autocite{Pollefliet2011}:
@@ -48,24 +48,20 @@ Fintech-bedrijven beschikken momenteel niet over een gestructureerde en geautoma
 \label{sec:onderzoeksvraag}
 
 \paragraph{Hoofdvraag}
-Hoe kan een framework worden ontwikkeld dat MCP-server implementaties automatisch test op een vooraf gedefinieerde set kritieke kwetsbaarheden, en hoe verhoudt de dekkingsgraad en benodigde tijd per assessment zich tot de huidige handmatige beveiligingsprocedures in Fintech-organisaties?
+Hoe kan een framework worden ontwikkeld dat MCP-server implementaties automatisch test op een vooraf gedefinieerde set kritieke kwetsbaarheden, en hoe verhoudt de dekkingsgraad en benodigde tijd per assessment zich tot een handmatige beoordeling op basis van twee concrete evaluatiecases?
 
 \paragraph{Deelvragen Probleemdomein}
 \begin{enumerate}
-  \item Hoeveel van de top 10 MCP-kwetsbaarheden worden momenteel gedetecteerd door handmatige security reviews binnen fintech-bedrijven?
-  \item Wat is het percentage MCP-implementaties in enterprises die kwetsbaar zijn voor prompt injection attacks, zoals vastgesteld door recent gepubliceerde onderzoeken?
-  \item Hoe vaak leiden MCP-gerelateerde kwetsbaarheden in de praktijk tot datalekken of frauduleuze transacties (incidentratio in de laatste 24 maanden)?
-  \item Hoeveel tijd besteden security teams gemiddeld aan het handmatig screenen van MCP-server code?
-  \item Wat is het percentage false negatives bij bestaande handmatige controles?
+  \item Welke kwetsbaarheden uit de OWASP MCP Top 10 zijn het meest kritiek voor Fintech-toepassingen, en hoe worden ze geclassificeerd in de bestaande literatuur?
+  \item Welke beperkingen hebben generieke beveiligingstools zoals Burp Suite en Semgrep bij het detecteren van MCP-specifieke kwetsbaarheden?
+  \item Hoeveel tijd vereist een handmatige beoordeling van een MCP-server implementatie volgens beschikbare richtlijnen, en wat zijn de voornaamste bronnen van foutmarge?
 \end{enumerate}
 
 \paragraph{Deelvragen Oplossingsdomein}
 \begin{enumerate}
-  \item Hoeveel procent van de MCP-kwetsbaarheden kan een geautomatiseerde tool detecteren in vergelijking met handmatige reviews?
-  \item Wat is de gemiddelde tijdsbesparing bij het scannen van MCP-servers door een geautomatiseerde pipeline?
-  \item Wat is het percentage false positives/negatives bij gebruik van SAST, DAST en fuzzing op MCP-implementaties?
-  \item Hoeveel MCP-servers kunnen effectief per dag worden gescand met het voorgestelde framework?
-  \item Hoe verbeteren geprioriteerde rapporten de reactietijd van security teams?
+  \item Welk percentage van de ingebedde kwetsbaarheden in de evaluatiecases detecteert het framework correct (recall), en wat is de bijhorende false positive rate?
+  \item Hoeveel tijd heeft het framework nodig voor een volledige assessment in vergelijking met een gestructureerde handmatige procedure op dezelfde target?
+  \item Welke categorieën kwetsbaarheden detecteert het framework betrouwbaarder dan handmatige review, en in welke gevallen blijft menselijke expertise noodzakelijk?
 \end{enumerate}
 
 %Wees zo concreet mogelijk bij het formuleren van je onderzoeksvraag. Een onderzoeksvraag is trouwens iets waar nog niemand op dit moment een antwoord heeft (voor zover je kan nagaan). Het opzoeken van bestaande informatie (bv. ``welke tools bestaan er voor deze toepassing?'') is dus geen onderzoeksvraag. Je kan de onderzoeksvraag verder specifiëren in deelvragen. Bv.~als je onderzoek gaat over performantiemetingen, dan
@@ -73,16 +69,16 @@ Hoe kan een framework worden ontwikkeld dat MCP-server implementaties automatisc
 \section{\IfLanguageName{dutch}{Onderzoeksdoelstelling}{Research objective}}%
 \label{sec:onderzoeksdoelstelling}
 
-Deze bachelorproef beoogt een geautomatiseerd security assessment framework te ontwerpen, ontwikkelen en valideren dat specifiek is toegespitst op MCP-server implementaties binnen Fintech-omgevingen. De concrete deliverables zijn:
+Deze bachelorproef beoogt een geautomatiseerd security assessment framework te ontwerpen, ontwikkelen en evalueren dat specifiek is toegespitst op MCP-server implementaties. De evaluatie steunt op twee concrete cases: een opzettelijk kwetsbare testserver (\emph{Goat}) en een representatieve open-source MCP-server. De concrete deliverables zijn:
 \begin{enumerate}
-  \item Een werkend prototype (Proof-of-Concept) van de security scanner die minimaal de OWASP MCP Top 10 kwetsbaarheden kan detecteren.
-  \item Een kwantitatieve validatie van de effectiviteit van dit framework ten opzichte van handmatige reviews, gemeten aan de hand van:
+  \item Een werkend prototype (Proof-of-Concept) van de security scanner die kwetsbaarheden uit de OWASP MCP Top 10 kan detecteren via statische analyse en dynamische fuzzing.
+  \item Een kwantitatieve evaluatie van de effectiviteit van het framework op basis van twee cases, gemeten aan de hand van:
         \begin{itemize}
-          \item Detectiegraad: het percentage correct geïdentificeerde kwetsbaarheden
-          \item Tijdsbesparing: verschil in benodigde tijd voor volledige assessment
-          \item False positive/negative ratio's: nauwkeurigheid van de detectie
+          \item Detectiegraad (recall): het percentage correct geïdentificeerde kwetsbaarheden
+          \item Tijdsverschil: benodigde tijd voor een volledige assessment tegenover een gestructureerde handmatige procedure
+          \item False positive rate: nauwkeurigheid van de detectie
         \end{itemize}
-  \item Een set evidence-based aanbevelingen voor de veilige implementatie van MCP in bedrijfsomgevingen, onderbouwd door de bevindingen uit de validatiefase.
+  \item Een set evidence-based aanbevelingen voor de veilige implementatie van MCP, onderbouwd door de bevindingen uit de evaluatiefase, met expliciete vermelding van de beperkingen van de externe validiteit.
 \end{enumerate}
 
 
