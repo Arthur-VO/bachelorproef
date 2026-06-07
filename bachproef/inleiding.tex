@@ -6,11 +6,11 @@
 \label{ch:inleiding}
 
 
-De sector van financiële technologie, of Fintech, heeft de afgelopen vijf jaar een jaarlijkse groei van 23,58\% doorgemaakt \autocite{statista2024fintechgrowth}. Een belangrijk deel van die groei is toe te schrijven aan de inzet van autonome AI-agents: softwaresystemen die zelfstandig beslissingen nemen en acties uitvoeren \autocite{russell2021artificialintelligence}. Ze worden niet alleen voor eenvoudige taken gebruikt, maar ook voor complexe bedrijfsprocessen zoals het afhandelen van klantvragen of het verwerken van transacties. Om te communiceren met interne databases en API's is het Model Context Protocol (MCP) de voorbije jaren de standaard geworden. MCP biedt een uniforme interface waardoor AI-agents platformonafhankelijk met bedrijfssystemen kunnen communiceren, vergelijkbaar met de rol die HTTP speelde voor webapplicaties \autocite{anthropic2024mcpwhitepaper}. Zonder zo'n gestandaardiseerd protocol zou elke organisatie voor elk AI-model een aparte integratie moeten bouwen, met alle gevolgen voor onderhoud en schaalbaarheid van dien.
+De sector van financiële technologie, of Fintech, heeft de afgelopen vijf jaar een jaarlijkse groei van 23,58\% in marktomzet doorgemaakt \autocite{statista2024fintechgrowth}. Autonome AI-agents spelen daarin een grote rol: softwaresystemen die zelfstandig beslissingen nemen en acties uitvoeren \autocite{russell2021artificialintelligence}. Ze categoriseren rekeningtransacties, initiëren betalingen en voeren andere taken uit waarbij de agent directe toegang tot interne systemen nodig heeft. Om die verbinding te standaardiseren is het Model Context Protocol (MCP\footnote{MCP is een open applicatieprotocol, gepubliceerd door Anthropic in 2024, dat definieert hoe AI-agents via JSON-RPC communiceren met externe tools en databronnen.}) in korte tijd breed geadopteerd geraakt als interface tussen AI-modellen en bedrijfsapplicaties \autocite{anthropic2024mcpwhitepaper}. Zonder zo'n gestandaardiseerd protocol zou elke organisatie voor elk AI-model een aparte integratie moeten bouwen, met alle gevolgen voor onderhoud en schaalbaarheid van dien. MCP is echter een jong en snel evoluerend protocol; de beveiligingsimplicaties ervan zijn nog niet volledig in kaart gebracht.
 
 Die standaardisatie heeft echter ook een keerzijde op vlak van beveiliging. Neem een Fintech-bedrijf dat via MCP een AI-agent toegang geeft tot zijn betaalsystemen. Aanvallers kunnen in zo'n opstelling \emph{prompt injection} gebruiken om de instructies van de agent te manipuleren door gewijzigde invoer in het systeem te injecteren. Via \emph{tool poisoning} kunnen zij schadelijke commando's verbergen in schijnbaar legitieme datastromen. En via \emph{privilege escalation} kan een agent door een beveiligingsfout onbedoeld verhoogde toegangsrechten verkrijgen, waardoor kritieke systemen bereikbaar worden voor onbevoegden \autocite{song2025protocolunveilingattackvectors}.
 
-Security-teams hebben doorgaans te weinig middelen om MCP-implementaties grondig te beveiligen tegen deze specifieke dreigingen. De huidige praktijk is afhankelijk van handmatige code-reviews en ad-hoc beveiligingstools die niet specifiek zijn ontworpen voor de technische eigenheid van het Model Context Protocol. Deze algemene beveiligingstools (zoals Burp Suite voor API-testing of Semgrep voor code-analyse) missen de nodige contextuele kennis om MCP-specifieke kwetsbaarheden, zoals gemanipuleerde tool-\hspace{0pt}beschrijvingen of onveilige JSON-RPC-communicatie, systematisch te detecteren. Dit gebrek aan gespecialiseerde tooling creëert een bottleneck in het ontwikkelproces: ofwel vertraagt innovatie door langdurige handmatige beveiligingscontroles, ofwel worden MCP-servers in productie gebracht zonder grondige veiligheidsbeoordeling. Dat 56\% van de ondernemingen die AI-agents inzetten beveiligingsincidenten rapporteert in hun MCP-omgevingen maakt de urgentie concreet \autocite{guo2025systematicanalysismcpsecurity}. Dit onderzoek bouwt een security assessment framework dat MCP-servers automatisch en systematisch test.
+Security-teams hebben doorgaans te weinig middelen om MCP-implementaties grondig te beveiligen tegen deze specifieke dreigingen. De huidige praktijk is afhankelijk van handmatige code-reviews en ad-hoc beveiligingstools die niet specifiek zijn ontworpen voor de technische eigenheid van het Model Context Protocol. Deze algemene beveiligingstools (zoals Burp Suite voor API-testing of Semgrep voor code-analyse) missen de nodige contextuele kennis om MCP-specifieke kwetsbaarheden, zoals gemanipuleerde tool-\hspace{0pt}beschrijvingen of onveilige JSON-RPC-communicatie, systematisch te detecteren. Dit gebrek aan gespecialiseerde tooling creëert een keuze: tijdrovende handmatige beveiligingscontroles die de ontwikkelcyclus vertragen, of MCP-servers in productie brengen zonder grondige veiligheidsbeoordeling. Dat 56\% van de ondernemingen die AI-agents inzetten beveiligingsincidenten rapporteert in hun MCP-omgevingen maakt de urgentie concreet \autocite{guo2025systematicanalysismcpsecurity}. Dit onderzoek bouwt een security assessment framework dat MCP-servers automatisch en systematisch test.
 
 
 %De inleiding moet de lezer net genoeg informatie verschaffen om het onderwerp te begrijpen en in te zien waarom de onderzoeksvraag de moeite waard is om te onderzoeken. In de inleiding ga je literatuurverwijzingen beperken, zodat de tekst vlot leesbaar blijft. Je kan de inleiding verder onderverdelen in secties als dit de tekst verduidelijkt. Zaken die aan bod kunnen komen in de inleiding~\autocite{Pollefliet2011}:
@@ -48,7 +48,7 @@ Fintech-bedrijven beschikken momenteel niet over een gestructureerde en geautoma
 \label{sec:onderzoeksvraag}
 
 \paragraph{Hoofdvraag}
-Hoe kan een framework worden ontwikkeld dat MCP-server implementaties automatisch test op een vooraf gedefinieerde set kritieke kwetsbaarheden, en hoe verhoudt de dekkingsgraad en benodigde tijd per assessment zich tot een handmatige beoordeling op basis van twee concrete evaluatiecases?
+Hoe kan een framework worden ontwikkeld dat MCP-server implementaties automatisch test op een vooraf gedefinieerde set kritieke kwetsbaarheden, en hoe verhoudt de dekkingsgraad en benodigde tijd per assessment zich tot een handmatige beoordeling op basis van een concrete evaluatiecase?
 
 \paragraph{Deelvragen Probleemdomein}
 \begin{enumerate}
@@ -59,7 +59,7 @@ Hoe kan een framework worden ontwikkeld dat MCP-server implementaties automatisc
 
 \paragraph{Deelvragen Oplossingsdomein}
 \begin{enumerate}
-  \item Welk percentage van de ingebedde kwetsbaarheden in de evaluatiecases detecteert het framework correct (recall), en wat is de bijhorende false positive rate?
+  \item Welk percentage van de ingebedde kwetsbaarheden in de Goat-server detecteert het framework correct (recall), en wat is de bijhorende precisie?
   \item Hoeveel tijd heeft het framework nodig voor een volledige assessment in vergelijking met een gestructureerde handmatige procedure op dezelfde target?
   \item Welke categorieën kwetsbaarheden detecteert het framework betrouwbaarder dan handmatige review, en in welke gevallen blijft menselijke expertise noodzakelijk?
 \end{enumerate}
@@ -69,14 +69,14 @@ Hoe kan een framework worden ontwikkeld dat MCP-server implementaties automatisc
 \section{\IfLanguageName{dutch}{Onderzoeksdoelstelling}{Research objective}}%
 \label{sec:onderzoeksdoelstelling}
 
-Deze bachelorproef beoogt een geautomatiseerd security assessment framework te ontwerpen, ontwikkelen en evalueren dat specifiek is toegespitst op MCP-server implementaties. De evaluatie steunt op twee concrete cases: een opzettelijk kwetsbare testserver (\emph{Goat}) en een representatieve open-source MCP-server. De concrete deliverables zijn:
+Deze bachelorproef beoogt een geautomatiseerd security assessment framework te ontwerpen, ontwikkelen en evalueren dat specifiek is toegespitst op MCP-server implementaties. De evaluatie steunt op één gecontroleerde case: een opzettelijk kwetsbare testserver (\emph{Goat}) met een bekende ground truth van vijf ingebedde kwetsbaarheden. De concrete deliverables zijn:
 \begin{enumerate}
   \item Een werkend prototype (Proof-of-Concept) van de security scanner die kwetsbaarheden uit de OWASP MCP Top 10 kan detecteren via statische analyse en dynamische fuzzing.
-  \item Een kwantitatieve evaluatie van de effectiviteit van het framework op basis van twee cases, gemeten aan de hand van:
+  \item Een kwantitatieve evaluatie van de effectiviteit van het framework op de Goat-server, gemeten aan de hand van:
         \begin{itemize}
           \item Detectiegraad (recall): het percentage correct geïdentificeerde kwetsbaarheden
           \item Tijdsverschil: benodigde tijd voor een volledige assessment tegenover een gestructureerde handmatige procedure
-          \item False positive rate: nauwkeurigheid van de detectie
+          \item Precisie: aandeel terechte bevindingen op alle bevindingen
         \end{itemize}
   \item Een set evidence-based aanbevelingen voor de veilige implementatie van MCP, onderbouwd door de bevindingen uit de evaluatiefase, met expliciete vermelding van de beperkingen van de externe validiteit.
 \end{enumerate}
@@ -97,6 +97,10 @@ In Hoofdstuk~\ref{ch:stand-van-zaken} wordt een overzicht gegeven van de stand v
 
 In Hoofdstuk~\ref{ch:methodologie} wordt de methodologie toegelicht en worden de gebruikte onderzoekstechnieken besproken om een antwoord te kunnen formuleren op de onderzoeksvragen.
 
-% TODO: Vul hier aan voor je eigen hoofstukken, één of twee zinnen per hoofdstuk
+In Hoofdstuk~\ref{ch:requirements} worden de functionele en niet-functionele vereisten van het framework vastgelegd op basis van compliance-eisen (PCI-DSS, GDPR) en MCP-beveiligings\-richtlijnen.
+
+In Hoofdstuk~\ref{ch:implementatie} worden de architectuur en implementatie van het security assessment framework beschreven, inclusief de discovery-, SAST- en fuzzingmodules.
+
+In Hoofdstuk~\ref{ch:validatie} worden de evaluatieresultaten gerapporteerd: de experimentele opstelling, de geautomatiseerde scan op de Goat-server en de vergelijking met de handmatige procedure.
 
 In Hoofdstuk~\ref{ch:conclusie}, tenslotte, wordt de conclusie gegeven en een antwoord geformuleerd op de onderzoeksvragen. Daarbij wordt ook een aanzet gegeven voor toekomstig onderzoek binnen dit domein.

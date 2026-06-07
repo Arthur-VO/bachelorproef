@@ -7,6 +7,13 @@
 
 De evaluatie meet twee dingen: hoeveel van de vijf ingebedde kwetsbaarheden het framework detecteert (recall), en hoeveel tijd dat kost vergeleken met een handmatige procedure. De Goat-server dient als gecontroleerde testomgeving met een bekende ground truth.
 
+\section{Experimentele opstelling}
+\label{sec:opstelling}
+
+Alle experimenten zijn uitgevoerd op een HP laptop met een Intel Core i7-1165G7 (4~cores, 2{,}80~GHz), 16~GB RAM en Windows~11~Home (build 26200). Docker~Desktop~28.4.0 met WSL2-backend (WSL-kernel 6.6.87.2) verzorgde de containeromgeving; de Goat-server en de scanner draaiden als twee aparte containers op een geïsoleerd intern netwerk (\texttt{mcp-lab-net}). Python~3.13 en de volgende bibliotheken werden gebruikt: \texttt{httpx~0.28.1}, \texttt{pydantic~2.11.7} en \texttt{PyYAML~6.0.2}. De volledige \texttt{docker-compose.yml} is opgenomen in bijlage~\ref{app:compose}. De evaluatie is uitgevoerd op commit \texttt{1247c41} van de scannerrepository (mei 2026).
+
+De geautomatiseerde scans werden drie keer opeenvolgend uitgevoerd na een koude opstart van de containers (\texttt{docker compose up -{}-build}). De gerapporteerde uitvoeringstijd van minder dan 30~seconden is het gemiddelde van deze drie runs, gemeten als wallclock-tijd van \texttt{docker compose run}. De handmatige procedure werd op dezelfde machine uitgevoerd door één beoordelaar en bestond uit een code review van \texttt{server.py} gevolgd door actieve HTTP-tests via \texttt{curl}; de tijd werd bijgehouden met een stopwatch en bedroeg 47~minuten. Beide procedures zijn uitgevoerd in mei 2026.
+
 \section{Testopstelling en ground truth}
 
 De Goat-server bevat vijf opzettelijk ingebedde kwetsbaarheden (Tabel~\ref{tab:groundtruth}).
@@ -64,11 +71,13 @@ Alle vijf ground truth-kwetsbaarheden werden gedetecteerd. Tabel~\ref{tab:recall
 
 De recall bedraagt $\frac{5}{5} = 100\%$.
 
-\subsection*{False positives}
+\subsection*{Precisie en false positives}
 
-Van de 13 bevindingen is er één debateerbaar: FUZZ-002 op \texttt{list\_recent\_transactions}. De fuzzer detecteerde dat een injection-payload ongesaniteerd terugkomt in de response van deze tool. Dit is geen opzettelijk ingebedde kwetsbaarheid, maar de scanner signaleert terecht dat de server elke willekeurige string als \texttt{account\_id} terugkaatst. Afhankelijk van de definitie telt dit als een echte vinding of als een false positive. In het meest conservatieve geval bedraagt de false positive rate $\frac{1}{13} \approx 7{,}7\%$.
+Van de 13 bevindingen is er één debateerbaar: FUZZ-002 op \texttt{list\-\_re\-cent\-\_trans\-ac\-tions}. De fuzzer detecteerde dat een injection-payload ongesaniteerd terugkomt in de response van deze tool. Dit is geen opzettelijk ingebedde kwetsbaarheid, maar de scanner signaleert terecht dat de server elke willekeurige string als \texttt{account\_id} terugkaatst. Afhankelijk van de definitie telt dit als een echte vinding of als een false positive. In het meest conservatieve geval bedraagt de \textbf{precisie} $\frac{12}{13} \approx 92{,}3\%$. Een klassieke false positive rate (FP / (FP + TN)) is niet van toepassing in een vulnerability scan, omdat true negatives (tools die geen kwetsbaarheid bevatten en ook niet gemarkeerd worden) niet zinvol te tellen zijn.
 
+\begin{sloppypar}
 De drie SAST-004-bevindingen voor ongebonden string-parameters op \texttt{execute\_transfer} (\texttt{from\_acc}, \texttt{to\_acc}) en \texttt{analyze\_financial\_document} (\texttt{document}) zijn technisch correct maar overlappen gedeeltelijk met de autorisatiebevindingen (V2, V3). De onderliggende oorzaak is dezelfde als bij V2 en V3 (ontbrekende inputvalidatie), maar het detectiepad verschilt.
+\end{sloppypar}
 
 \section{Resultaten handmatige procedure}
 
@@ -76,7 +85,7 @@ De handmatige procedure bestaat uit een code review van \texttt{server.py} gevol
 
 \begin{table}[htbp]
     \centering
-    \caption{Resultaten handmatige beoordeling (in te vullen na uitvoering).}
+    \caption{Resultaten handmatige beoordeling.}
     \label{tab:manueel}
     \begin{tabular}{@{}lll@{}}
         \toprule
@@ -100,7 +109,7 @@ Tabel~\ref{tab:vergelijking} vat de resultaten samen op de vier meetdimensies.
         \toprule
         \textbf{Meetdimensie}   & \textbf{Framework} & \textbf{Handmatig} \\ \midrule
         Recall                  & 100\% (5/5)        & 80\% (4/5) \\
-        False positive rate     & $\leq$7,7\%        & 0\% \\
+        Precisie                & $\geq$92,3\% (12/13) & 100\% (4/4) \\
         Benodigde tijd          & $<$30 seconden     & 47 min \\
         Reproduceerbaarheid     & Gegarandeerd       & Afhankelijk van reviewer \\ \bottomrule
     \end{tabular}
@@ -118,7 +127,9 @@ De scanner detecteert patronen, geen intentie. Of een gevonden prompt injection-
 
 De handmatige procedure is uitgevoerd door één reviewer in een gecontroleerde omgeving. Dit beperkt de statistische zeggingskracht van de vergelijking: een ervaren penetration tester bereikt mogelijk een hogere recall in minder tijd, terwijl een minder ervaren analist langer nodig heeft en meer kwetsbaarheden mist. Zonder meerdere reviewers met variërende achtergronden kan geen uitspraak worden gedaan over wat een \emph{gemiddelde} handmatige beoordeling oplevert.
 
+\begin{sloppypar}
 Daarnaast is de Goat-server een opzettelijk kwetsbare omgeving met een vaste ground truth. In de praktijk zijn kwetsbaarheden zelden zo expliciet aanwezig als de prompt injection-instructie in de tool description van \texttt{analyze\_financial\_document}. De recall van de scanner op de Goat-server is daarmee een bovengrens: reële servers bevatten subtielere patronen die zowel de scanner als een menselijke reviewer kunnen missen.
+\end{sloppypar}
 
 De evaluatie is dan ook illustratief van aard, niet statistisch valide. De tijdsvergelijking toont een structureel verschil aan: de scanner voltooit de assessment in minder dan 30 seconden, terwijl de handmatige procedure meerdere tientallen minuten vergt. Dit verschil is onafhankelijk van de specifieke reviewer. Het reproduceerbaarheidsverschil is inherent: de scanner produceert bij elke uitvoering op dezelfde omgeving identieke resultaten, terwijl handmatige beoordelingen variëren naar gelang de focus en ervaring van de analist~\autocite{chess2004static}.
 

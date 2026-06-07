@@ -5,9 +5,16 @@
 \chapter{Conclusie}%
 \label{ch:conclusie}
 
-Het framework detecteerde alle vijf ingebedde kwetsbaarheden in de Goat-server in minder dan 30 seconden, bij een false positive rate van maximaal 7,7\%. De handmatige procedure vereiste 47 minuten en identificeerde 4 van de vijf kwetsbaarheden. Op basis van de twee evaluatiecases beantwoordt dit onderzoek de hoofdvraag: een geautomatiseerd MCP security assessment framework is realiseerbaar en levert aantoonbaar hogere detectiesnelheid dan een gestructureerde handmatige beoordeling, bij vergelijkbare of betere recall.
+De hoofdvraag van dit onderzoek luidde: \emph{Hoe kan een framework worden ontwikkeld dat MCP-server implementaties automatisch test op een vooraf gedefinieerde set kritieke kwetsbaarheden, en hoe verhoudt de dekkingsgraad en benodigde tijd per assessment zich tot een handmatige beoordeling op basis van een concrete evaluatiecase?}
+
+Het onderzoek toont aan dat een geautomatiseerd assessment framework kritieke kwetsbaarheden in MCP-serverimplementaties effectief kan detecteren. Het framework werkt sneller, levert reproduceerbare resultaten en detecteert bekende kwetsbaarheidspatronen even goed als een handmatige beoordeling.\footnote{Dekkingsgraad (recall): het aandeel daadwerkelijk aanwezige kwetsbaarheden dat het framework correct detecteert.} Voor contextuele interpretatie en complexe logische beveiligingsproblemen blijft menselijke analyse onmisbaar.
+
+\paragraph{Kernresultaten}
+Het framework detecteerde alle vijf ingebedde kwetsbaarheden in de Goat-server (zie \ref{sec:opstelling}) in minder dan 30 seconden, bij een precisie van 92{,}3\% in het meest conservatieve geval (12 terechte bevindingen op 13 totale bevindingen). De handmatige procedure vereiste 47 minuten en identificeerde 4 van de vijf kwetsbaarheden.
 
 \section{Probleemdomein}
+
+Het probleemdomein omvat de aard, de spreiding en de meetbaarheid van beveiligingskwetsbaarheden in MCP-servers; het oplossingsdomein (zie volgende sectie) omvat de detectiemechanismen van het framework: SAST-001 detecteert bijvoorbeeld de prompt-injection-patronen die in het probleemdomein zijn geïdentificeerd.
 
 De literatuurstudie identificeerde prompt injection, tool poisoning en ontbrekende autorisatiechecks als de meest kritieke kwetsbaarheden voor Fintech-toepassingen. Deze drie categorieën scoren hoog op zowel kans als impact binnen de OWASP MCP Top 10, omdat ze direct raken aan bedrijfskritische processen zoals transactieverwerking en klantidentificatie.
 
@@ -17,13 +24,13 @@ De handmatige procedure kostte 47 minuten. De voornaamste bronnen van foutmarge 
 
 \section{Oplossingsdomein}
 
-Het framework detecteerde 5 van de 5 kwetsbaarheden uit de ground truth (recall 100\%). Van de 13 bevindingen is er één debateerbaar als false positive, wat resulteert in een false positive rate van maximaal 7,7\%. De handmatige beoordeling vond 4 van de vijf kwetsbaarheden (80\%) en produceerde 0 false positives.
+Het framework detecteerde 5 van de 5 kwetsbaarheden uit de ground truth (recall 100\%). Van de 13 bevindingen is er één debateerbaar als false positive, wat resulteert in een precisie van minimaal 92{,}3\% (12 terechte bevindingen op 13 totaal). Een klassieke false positive \emph{rate} (FPR = FP / (FP + TN)) is hier niet van toepassing omdat true negatives in een vulnerability scan niet zinvol te tellen zijn; de precisie is de correcte maatstaf. De handmatige beoordeling vond 4 van de vijf kwetsbaarheden (80\%) en produceerde 0 false positives.
 
 Het framework presteert betrouwbaarder voor gedragsmatige kwetsbaarheden die alleen zichtbaar zijn bij runtime. Tool poisoning in \texttt{fetch\_market\_news} is enkel detecteerbaar door de tool effectief aan te roepen en de respons te analyseren; statische analyse alleen is hiervoor onvoldoende. Menselijke expertise blijft noodzakelijk voor de beoordeling van bedrijfsimpact: of een gevonden kwetsbaarheid in een specifieke architectuur exploiteerbaar is, vereist contextuele kennis die regels niet kunnen overnemen.
 
 \section{Kritische reflectie}
 
-De resultaten steunen op twee evaluatiecases. De externe validiteit is daarmee beperkt: uitspraken over MCP-servers in het algemeen zijn op basis van dit onderzoek niet gerechtvaardigd. De Goat-server is opzettelijk kwetsbaar en representeert niet de gemiddelde productieomgeving. De tweede case biedt aanvullende indicaties, maar beide cases samen zijn onvoldoende om generaliseerbare uitspraken te doen.
+De resultaten steunen op één gecontroleerde evaluatiecase (de Goat-server). De externe validiteit is daarmee beperkt: uitspraken over MCP-servers in het algemeen zijn op basis van dit onderzoek niet gerechtvaardigd. De Goat-server is opzettelijk kwetsbaar en representeert niet de gemiddelde productieomgeving.
 
 Het hoge recall-cijfer is deels te verklaren door de aard van de testomgeving: de kwetsbaarheden zijn geselecteerd en geïmplementeerd om detecteerbaar te zijn voor dit type scanner. In een omgeving met subtielere of domeinspecifieke kwetsbaarheden zal de recall waarschijnlijk lager liggen.
 
@@ -35,18 +42,20 @@ Het debateerbare false positive op \texttt{list\_recent\_transactions} illustree
 De scanner identificeert patronen snel en reproduceerbaar, maar kan de bedrijfsimpact van een bevinding niet beoordelen. Of een gevonden autorisatieprobleem exploiteerbaar is binnen een specifieke architectuur, hangt af van netwerktopologie, toegangsbeheer en systeemprompts die buiten het bereik van de scanner liggen. Het debateerbare false positive op \texttt{list\_recent\_transactions} illustreert dat elke geautomatiseerde run gevolgd moet worden door een menselijke triagefase. Het framework vervangt geen security audit; het verlaagt de drempel om die audit gericht te voeren.
 
 \paragraph{Verplicht autorisatiechecks op serverniveau}
-De kwetsbaarheden V2 en V3, het ontbreken van autorisatiecontroles op \texttt{analyze\_financial\_document} en \texttt{execute\_transfer}, vormen het hoogste risico in een Fintech-context. Beide tools gaven toegang tot gevoelige functionaliteit zonder enige verificatie van de aanroeper. Serverimplementaties dienen authenticatie en autorisatie af te dwingen op elke tool die toegang biedt tot transacties, gebruikersgegevens of beheersfuncties, ongeacht of de aanroeper een menselijke gebruiker of een AI-agent is.
+\begin{sloppypar}
+De kwetsbaarheden V2 en V3, het ontbreken van autorisatiecontroles op \texttt{analyze\_financial\_document} en \texttt{execute\_transfer}, vormen het hoogste risico in een Fintech-context.
+\end{sloppypar} Beide tools gaven toegang tot gevoelige functionaliteit zonder enige verificatie van de aanroeper. Serverimplementaties dienen authenticatie en autorisatie af te dwingen op elke tool die toegang biedt tot transacties, gebruikersgegevens of beheersfuncties, ongeacht of de aanroeper een menselijke gebruiker of een AI-agent is.
 
 \paragraph{Beschouw tool outputs als onvertrouwde invoer}
-De tool poisoning in \texttt{fetch\_market\_news} toont aan dat kwetsbare inhoud niet alleen via parameters binnenkomt, maar ook via de data die een tool teruggeeft. De verborgen injection-payload in de \texttt{content}-string was alleen detecteerbaar door de tool effectief aan te roepen en de response te analyseren. Servers dienen hun outputs te sanitiseren op dezelfde manier als inputs, met name wanneer de respons wordt doorgegeven aan een taalmodel dat de inhoud als instructie kan interpreteren.
+De tool poisoning in \texttt{fetch\_market\_news} toont aan dat kwetsbare inhoud ook via de teruggestuurde data kan binnenkomen, niet enkel via parameters. De verborgen injection-payload in de \texttt{content}-string was alleen detecteerbaar door de tool effectief aan te roepen en de response te analyseren. Servers dienen hun outputs te sanitiseren op dezelfde manier als inputs, met name wanneer de respons wordt doorgegeven aan een taalmodel dat de inhoud als instructie kan interpreteren.
 
 \paragraph{Integreer de scanner in het CI/CD-proces}
 Een volledige assessment duurt minder dan 30 seconden. Dit maakt continue beveiligingsmonitoring haalbaar: de scanner kan als stap in een bouwpijplijn worden opgenomen zodat kwetsbaarheden worden gedetecteerd vóór deployment. De gecontaineriseerde opzet via Docker Compose verlaagt de integratiedrempel, omdat de testomgeving identiek is aan de ontwikkelomgeving.
 
 \section{Toekomstig onderzoek}
 
-Dit onderzoek opent drie richtingen voor verder werk. De externe validiteit vraagt om een uitgebreidere evaluatie: een studie met meerdere diverse MCP-servers, inclusief productieomgevingen, zou robuustere uitspraken mogelijk maken over de generaliseerbaarheid van de detectieregels.
+Drie vragen liggen open voor vervolgonderzoek. De externe validiteit vraagt om een uitgebreidere evaluatie: een studie met meerdere diverse MCP-servers, inclusief productieomgevingen, zou robuustere uitspraken mogelijk maken over de generaliseerbaarheid van de detectieregels.
 
-CI/CD-integratie ligt als vervolgstap voor de hand. Het framework draait nu als zelfstandige tool; continuous security monitoring vereist dat de scanner ingebouwd wordt in het bouwproces, zodat bevindingen automatisch worden gerapporteerd aan het development team.
+Een logische vervolgstap is integratie in een CI/CD-pipeline. Het framework draait nu als zelfstandige tool; continuous security monitoring vereist dat de scanner ingebouwd wordt in het bouwproces, zodat bevindingen automatisch worden gerapporteerd aan het development team.
 
-Ten slotte blijft de vraag open hoe het framework omgaat met semantische kwetsbaarheden die afhangen van de systeemprompt van het onderliggende taalmodel. Of een prompt injection-patroon een specifiek model in de praktijk manipuleert, is niet deterministisch testbaar met de huidige aanpak. Dit vereist aanvullend onderzoek naar adversarial testing van LLM-agentsystemen.
+Een derde open vraag is hoe het framework zich gedraagt bij semantische kwetsbaarheden die afhangen van de systeemprompt van het onderliggende taalmodel. Of een prompt injection-patroon een specifiek model in de praktijk manipuleert, is niet deterministisch testbaar met de huidige aanpak. Dit vereist aanvullend onderzoek naar adversarial testing van LLM-agentsystemen.

@@ -52,8 +52,7 @@
 \author{Arthur Van Oudenhove}
 \supervisor{Dhr. L. Smits}
 \cosupervisor{Dhr. A. Algaba}
-\title[Optionele ondertitel]%
-    {Beveiliging van AI‑agents in Fintech: automatische detectie van beveiligingslekken in integraties op basis van het Model Context Protocol (MCP)}
+\title{Beveiliging van AI‑agents in Fintech: automatische detectie van beveiligingslekken in integraties op basis van het Model Context Protocol (MCP)}
 \academicyear{\advance\year by -1 \the\year--\advance\year by 1 \the\year}
 \examperiod{1}
 \degreesought{\IfLanguageName{dutch}{Professionele bachelor in de toegepaste informatica}{Bachelor of applied computer science}}
@@ -168,9 +167,53 @@ De verwachte resultaten omvatten een significant hogere en consistentere detecti
 \input{../voorstel/voorstel-inhoud}
 
 %%---------- Andere bijlagen --------------------------------------------------
-% TODO: Voeg hier eventuele andere bijlagen toe. Bv. als je deze BP voor de
-% tweede keer indient, een overzicht van de verbeteringen t.o.v. het origineel.
-%\input{...}
+\chapter{Docker Compose-configuratie}
+\label{app:compose}
+
+De volledige testomgeving wordt opgestart via onderstaand \texttt{docker-compose.yml}-bestand. De Goat-server en de scanner draaien elk als aparte container op het geïsoleerde interne netwerk \texttt{mcp-lab-net}. De scanner-container stopt automatisch na de scan (\texttt{restart: "no"}) en maakt de rapporten beschikbaar op de host via een volume-mount.
+
+\begin{listing}[htbp]
+\begin{minted}{yaml}
+services:
+  goat-server:
+    build:
+      context: ./goat
+      dockerfile: Dockerfile
+    container_name: mcp-goat
+    ports:
+      - "8080:8080"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8080
+      - ENVIRONMENT=development
+    networks:
+      - mcp-lab-net
+    restart: unless-stopped
+
+  scanner:
+    build:
+      context: .
+      dockerfile: scanner/Dockerfile
+    container_name: mcp-scanner
+    depends_on:
+      - goat-server
+    environment:
+      - SCANNER_CONFIG_PATH=/app/scanner/configs/goat.yaml
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ./scanner/reports:/app/reports
+      - ./scanner/configs:/app/scanner/configs:ro
+    networks:
+      - mcp-lab-net
+    restart: "no"
+
+networks:
+  mcp-lab-net:
+    driver: bridge
+\end{minted}
+\caption{\texttt{docker-compose.yml} van de evaluatieomgeving (commit \texttt{1247c41}).}
+\label{lst:compose}
+\end{listing}
 
 %%---------- Backmatter, referentielijst ---------------------------------------
 

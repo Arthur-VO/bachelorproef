@@ -67,7 +67,7 @@ De eerste fase bestaat uit een literatuurstudie via academische databanken (Goog
 
 \section{Fase 2: Requirementsanalyse voor Fintech-toepassingen}
 
-De requirementsanalyse steunt op documentanalyse van compliance-kaders (PCI-DSS, GDPR) en API-security best practices, niet op interviews of enquêtes. Die keuze is bewust: harde compliance-eisen leveren objectievere criteria op dan subjectieve meningen. De functionele en niet-functionele vereisten --- waaronder logging, auditability en toegangscontrole --- worden ingedeeld via de MoSCoW-methode en gedocumenteerd in het hoofdstuk Requirementsanalyse. Geschatte doorlooptijd: twee weken.
+De requirementsanalyse steunt op documentanalyse van compliance-kaders (PCI-DSS, GDPR) en API-security best practices, niet op interviews of enquêtes. Die keuze is bewust: harde compliance-eisen leveren objectievere criteria op dan subjectieve meningen. De functionele en niet-functionele vereisten (waaronder logging, auditability en toegangscontrole) worden ingedeeld via de MoSCoW-methode en gedocumenteerd in het hoofdstuk Requirementsanalyse. Geschatte doorlooptijd: twee weken.
 
 \section{Fase 3: Ontwerp en implementatie van het assessment framework}
 
@@ -83,16 +83,16 @@ De implementatie maakt gebruik van Python~3.12, Docker, Pydantic en de officiël
 
 \section{Fase 4: Validatie via een 'Vulnerable MCP Server'}
 
-Omdat er weinig publieke testdata beschikbaar is, wordt een eigen testomgeving ontwikkeld: de \emph{Fintech MCP Goat}, een opzettelijk kwetsbare MCP-server die financiële scenario's nabootst (saldo opvragen, overschrijving starten). Deze server dient als gecontroleerde \emph{ground truth}. Parallel wordt een gestructureerde handmatige beoordelingsprocedure vastgelegd als checklist, zodat de vergelijking reproduceerbaar is. Per testscenario worden vier grootheden gemeten:
+Omdat er weinig publieke testdata beschikbaar is, wordt een eigen testomgeving ontwikkeld: de \emph{Fintech MCP Goat}, een opzettelijk kwetsbare MCP-server die financiële scenario's nabootst (saldo opvragen, overschrijving starten). Deze server dient als gecontroleerde \emph{ground truth} met vijf bekende, opzettelijk ingebedde kwetsbaarheden. De evaluatie steunt op deze ene gecontroleerde case; bredere uitspraken over andere MCP-servers vallen buiten de scope van dit onderzoek. Parallel wordt een gestructureerde handmatige beoordelingsprocedure vastgelegd als checklist, zodat de vergelijking reproduceerbaar is. Per testscenario worden vier grootheden gemeten:
 
 \begin{itemize}
     \item \textbf{Detectieratio (Recall):} $\frac{\text{Aantal gevonden kwetsbaarheden}}{\text{Totaal aantal aanwezige kwetsbaarheden}}$, gemeten voor zowel de handmatige review als het framework
-    \item \textbf{False Positive Rate:} Aantal onterechte alarmen voor beide methoden
+    \item \textbf{Precisie:} Aandeel terechte bevindingen op het totaal aantal gerapporteerde bevindingen
     \item \textbf{Performance:} Benodigde tijd voor volledige assessment (handmatig in uren, geautomatiseerd in minuten)
     \item \textbf{Kwalitatieve analyse:} Identificatie waar menselijke expertise beter presteert (contextuele interpretatie) versus waar de tool superieur is (herhaalbaarheid, volledigheid)
 \end{itemize}
 
-De testomgeving draait via Docker~Compose; Burp~Suite wordt ingezet voor manuele verificatie. Het resultaat is een validatierapport met kwantitatieve meetresultaten. Geschatte doorlooptijd: drie weken.
+De testomgeving draait via Docker~Compose. Het resultaat is een validatierapport met kwantitatieve meetresultaten voor de Goat-server. Geschatte doorlooptijd: drie weken.
 
 \section{Overzichtstabel Planning}
 
