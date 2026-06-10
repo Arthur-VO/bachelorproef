@@ -1,0 +1,54 @@
+\documentclass[border=10pt]{standalone}
+\usepackage{fontspec}
+\IfFontExistsTF{Montserrat}{\setmainfont{Montserrat}}{}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, calc, fit, backgrounds}
+
+\definecolor{hgdarkgreen}{RGB}{22,176,165}
+\definecolor{hgblue}{RGB}{76,162,213}
+\definecolor{hgochre}{RGB}{250,188,50}
+\definecolor{hgorange}{RGB}{239,135,103}
+\definecolor{hggrey}{RGB}{195,187,175}
+\definecolor{hgpurple}{RGB}{187,144,189}
+
+\newcommand{\sub}[1]{\\{\footnotesize\mdseries #1}}
+
+\begin{document}
+\begin{tikzpicture}[
+  font=\sffamily,
+  box/.style={rectangle, rounded corners=4pt, minimum width=3.1cm,
+              minimum height=1.35cm, align=center, text=white,
+              font=\bfseries\large, inner sep=5pt},
+  io/.style={rectangle, rounded corners=2pt, minimum width=2.7cm,
+             minimum height=0.95cm, align=center, draw=hggrey,
+             fill=hggrey!18, font=\small, text=black},
+  arr/.style={-{Stealth[length=3.2mm,width=2.6mm]}, line width=1pt, gray!70}
+]
+  \node[box, fill=hgpurple] (target) {MCP-server\sub{(target)}};
+  \node[box, fill=hgblue, right=1.4cm of target] (disc)
+        {Discovery\sub{tools / prompts / resources}};
+  \node[box, fill=hgdarkgreen, above right=0.55cm and 1.7cm of disc] (sast)
+        {SAST\sub{schema-analyse}};
+  \node[box, fill=hgochre, text=black, below right=0.55cm and 1.7cm of disc] (fuzz)
+        {Fuzzing\sub{runtime-payloads}};
+  \coordinate (mid) at ($(sast)!0.5!(fuzz)$);
+  \node[box, fill=hgorange, right=1.7cm of mid] (rep) {Rapport-\\generator};
+  \node[io, above right=0.35cm and 1.5cm of rep] (json) {report.json};
+  \node[io, below right=0.35cm and 1.5cm of rep] (md) {report.md};
+
+  \draw[arr] (target) -- (disc);
+  \draw[arr] (disc.north east) -- (sast.west);
+  \draw[arr] (disc.south east) -- (fuzz.west);
+  \draw[arr] (sast.east) -- (rep.north west);
+  \draw[arr] (fuzz.east) -- (rep.south west);
+  \draw[arr] (rep.north east) -- (json.west);
+  \draw[arr] (rep.south east) -- (md.west);
+
+  \begin{scope}[on background layer]
+    \node[draw=hggrey, dashed, line width=1pt, rounded corners=8pt,
+          inner sep=15pt, fit=(disc)(sast)(fuzz)(rep)] (scanner) {};
+    \node[hggrey, font=\small\bfseries, anchor=south west]
+          at ([yshift=2pt]scanner.north west) {Scanner \textperiodcentered\ Docker};
+  \end{scope}
+\end{tikzpicture}
+\end{document}

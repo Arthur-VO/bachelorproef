@@ -1,0 +1,46 @@
+%==========================================================================
+% LaTeX Beamer Presentatiestijl voor HoGent - huisstijl 2018
+%==========================================================================
+%
+% Kleurenschema met zwarte achtergrond, witte tekst
+%
+% Auteur: Bert Van Vreckem [bert.vanvreckem@hogent.be]
+
+\ProvidesPackage{beamercolorthemehgblack}
+
+\mode<presentation>
+
+\setbeamercolor{palette primary}{fg=white,bg=black}
+\setbeamercolor{palette secondary}{fg=white,bg=black}
+\setbeamercolor{palette tertiary}{fg=white,bg=black}
+\setbeamercolor{palette quaternary}{fg=white,bg=black}
+
+\setbeamercolor{structure}{fg=white,bg=black}
+
+\setbeamercolor{normal text}{fg=white,bg=black}
+\setbeamercolor{alerted text}{fg=hgorange}
+
+%% Use the length of the 'HO' part of the logo to set the padding of the logo
+\newsavebox{\logopart}
+\savebox{\logopart}{\includegraphics[height=1cm]{graphics/logopart}}
+
+%% Footer: pagenumber on the left, logo right
+\setbeamertemplate{footline}{%
+  \begin{beamercolorbox}[wd=\paperwidth]{footline}
+    \usebeamercolor{page number in foot}
+    \usebeamerfont{page number in foot}
+    \hspace{1em}\insertframenumber/\inserttotalframenumber
+    \hfill
+
+    %% Insert the HoGent logo
+    \begin{tikzpicture}[remember picture, overlay]
+    \node [anchor=south east, shift={(-\the\wd\logopart, \the\wd\logopart)},
+    inner sep=0, outer sep=0] (logo) at (current page.south east)%
+    {%
+        \includegraphics[height=\the\ht\logopart]{hogent_logo_white}%
+    };%
+    \end{tikzpicture}
+  \end{beamercolorbox}
+}
+
+\mode<all>

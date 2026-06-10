@@ -1,0 +1,209 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{fontspec}
+\IfFontExistsTF{Montserrat}{\setmainfont{Montserrat}}{}
+\usepackage{babel}
+\babelprovide[main, import]{dutch}
+\usepackage[a4paper,margin=2.4cm]{geometry}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{amssymb}
+\usepackage{hyperref}
+
+\definecolor{hgteal}{RGB}{22,176,165}
+\definecolor{hggrey}{RGB}{120,120,120}
+
+\hypersetup{colorlinks=true, linkcolor=hgteal, urlcolor=hgteal}
+
+\newcommand{\code}[1]{\texttt{\small #1}}
+
+\titleformat{\section}{\Large\bfseries\color{hgteal}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{1.4em}{0.5em}
+
+\setlist[itemize]{leftmargin=1.4em, itemsep=0.2em, topsep=0.3em}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.4em}
+
+\begin{document}
+
+{\Huge\bfseries\color{hgteal} Slide-onderbouwing}\\[0.4em]
+{\large Geautomatiseerde security assessment van MCP-servers}\\[0.2em]
+{\color{hggrey} Verdediging bachelorproef --- Arthur Van Oudenhove}
+
+\vspace{0.8em}
+\hrule
+\vspace{0.6em}
+
+Per slide: de tekst op de deck en de onderbouwing uit de bachelorproef
+(FINAL-versie: precisie-framing, \'e\'en evaluatiecase). Bronverwijzingen tussen
+haakjes zijn de \code{\textbackslash autocite}-keys uit \code{bachproef.bib}.
+
+\section{Slide 2. De poster}
+\textbf{Op de deck:} volledige poster, full screen, geen tekst.
+
+\textbf{Achtergrond:} dient als totaalkaart. De navigator licht per slide de
+relevante posterzone op.
+
+\section{Slide 3. AI-agents in Fintech, via MCP}
+\textbf{Op de deck:}
+\begin{itemize}
+  \item AI-agents verwerken betalingen en bedrijfskritische taken.
+  \item Communicatie loopt via het Model Context Protocol.
+  \item Standaardisatie opent aanvalsvlakken: prompt injection, tool poisoning, privilege escalation.
+  \item ``56\% van de bedrijven met AI-agents rapporteert MCP-beveiligingsincidenten.''
+\end{itemize}
+
+\textbf{Achtergrond (Inleiding, Probleemstelling; Stand van zaken, sectie 1):}
+\begin{itemize}
+  \item Fintech groeide de afgelopen vijf jaar met 23,58\% per jaar (\code{statista2024fintechgrowth}).
+  \item MCP is de de-facto standaard voor agent-naar-systeem-communicatie, vergelijkbaar met de rol van HTTP voor webapplicaties (\code{anthropic2024mcpwhitepaper}).
+  \item De drie aanvalsvectoren komen uit (\code{song2025protocolunveilingattackvectors}). Confused-deputy en ``Living off AI'' uit (\code{Cato2025}).
+  \item De 56\%-statistiek komt uit een systematische analyse (\code{guo2025systematicanalysismcpsecurity}).
+  \item Doelgroep: security teams, DevSecOps-engineers en enterprise architects in gereguleerde sectoren.
+\end{itemize}
+
+\section{Slide 4. Onderzoeksvraag}
+\textbf{Op de deck:}
+\begin{itemize}
+  \item Hoofdvraag: hoe kan een framework MCP-servers automatisch testen op kritieke kwetsbaarheden, en hoe verhoudt dekkingsgraad en tijd zich tot een handmatige beoordeling?
+  \item Scope: \'e\'en gecontroleerde evaluatiecase (Goat) met een vaste ground truth.
+\end{itemize}
+
+\textbf{Achtergrond (Inleiding, Onderzoeksvraag en Doelstelling):}
+\begin{itemize}
+  \item Deelvragen probleemdomein: welke OWASP-kwetsbaarheden zijn kritiek voor Fintech, welke beperkingen hebben Burp en Semgrep, hoeveel tijd kost een handmatige review en wat zijn de foutbronnen.
+  \item Deelvragen oplossingsdomein: recall en precisie, het tijdsverschil, en waar menselijke expertise nodig blijft.
+  \item Deliverables: een werkend prototype, een kwantitatieve evaluatie (recall, tijd, precisie) en evidence-based aanbevelingen met expliciete vermelding van de beperkte externe validiteit.
+  \item De FINAL-versie spreekt bewust over \'e\'en case. De ``twee cases'' uit de draft is geschrapt.
+\end{itemize}
+
+\section{Slide 5. Waarom generieke tools tekortschieten}
+\textbf{Op de deck:}
+\begin{itemize}
+  \item Burp Suite ziet HTTP en JSON-RPC, maar kent de semantiek van MCP-schema's niet.
+  \item Semgrep detecteert code-patronen, maar niet de runtime-interactie.
+  \item ``Geen contextuele kennis van MCP-specifieke kwetsbaarheden.''
+\end{itemize}
+
+\textbf{Achtergrond (Stand van zaken, Status quo en Bestaande tools):}
+\begin{itemize}
+  \item Een handmatige MCP-review kost gemiddeld 8 tot 16 uur per iteratie (\code{Uproot2025}), wat een bottleneck vormt in agile omgevingen.
+  \item Burp onderschept JSON-RPC maar herkent geen kwaadaardige tool-beschrijving. Semgrep mist runtime-analyse.
+  \item MCPSafetyScanner (\code{radosevich2025mcpsafetyaudit}) is LLM-agentisch, dus niet-deterministisch, en vereist een externe API (een privacyprobleem in Fintech). Jouw keuze valt op deterministische, vaste detectieregels (zie NF-2 reproduceerbaarheid).
+  \item Invariant Labs (\code{Invariant2025}) biedt een losse scanning-tool zonder breder framework.
+\end{itemize}
+
+\section{Slide 6. Architectuur}
+\textbf{Op de deck:} TikZ-diagram. MCP-server naar Discovery naar SAST en Fuzzing naar Rapportgenerator naar report.json en report.md, binnen een ``Scanner, Docker''-container.
+
+\textbf{Achtergrond (Implementatie; Methodologie, fase 3):}
+\begin{itemize}
+  \item Drie onafhankelijke modules, sequentieel uitgevoerd. Ze delen \'e\'en \code{Finding}-model (\code{rule\_id}, \code{severity}, \code{tool\_name}, \code{title}, \code{detail}), zodat SAST en fuzzing uniform verwerkt worden.
+  \item Discovery roept \code{list\_tools}, \code{list\_prompts} en \code{list\_resources} aan en valideert de respons via Pydantic-modellen.
+  \item Gebouwd in Python 3.12 met de offici\"ele \code{mcp}-library. Draait via Docker Compose op een ge\"isoleerd intern netwerk (\code{mcp-lab-net}).
+  \item Twee rapporten: report.json (integreerbaar in CI/CD) en report.md (leesbaar, met badges).
+\end{itemize}
+
+\section{Slide 7. Statisch en dynamisch}
+\textbf{Op de deck:}
+\begin{itemize}
+  \item SAST (schema): prompt injection in beschrijving, ontbrekende autorisatiecontext, ongebonden parameters.
+  \item Fuzzing (runtime): information disclosure, injection-reflectie, autorisatiebypass en tool poisoning.
+  \item ``Runtime-gedrag is onzichtbaar in broncode, daarom allebei.''
+\end{itemize}
+
+\textbf{Achtergrond (Implementatie, SAST en Fuzzing; Stand van zaken, Geautomatiseerd):}
+\begin{itemize}
+  \item SAST telt vier regels: SAST-001 prompt injection (regex op \code{ignore rules}, \code{you are now}), SAST-002 ongebonden numeriek, SAST-003 ontbrekende autorisatie, SAST-004 ongebonden string.
+  \item Fuzzing telt vier regels: FUZZ-001 information disclosure, FUZZ-002 injection-reflectie, FUZZ-003 autorisatiebypass (plus negatieve bedragen), FUZZ-004 tool poisoning (scant de respons).
+  \item Onderbouwing van SAST, DAST en fuzzing: (\code{chess2004static}) en (\code{manes2019art}). De regels staan in losse lijsten, dus een nieuwe regel is een functie toevoegen (NF-1 modulariteit).
+\end{itemize}
+
+\section{Slide 8. Demo (screencast)}
+\textbf{Op de deck:} still en de aanduiding demo (screencast).
+
+\textbf{Achtergrond (Validatie, Testopstelling):}
+\begin{itemize}
+  \item Goat bevat vijf opzettelijk ingebedde kwetsbaarheden. V1 prompt injection in de description en V2 geen autorisatie op \code{analyze\_financial\_document}. V3 geen autorisatie en V4 negatieve bedragen op \code{execute\_transfer}. V5 tool poisoning op \code{fetch\_market\_news}.
+  \item Volledig gecontaineriseerd op een ge\"isoleerd netwerk, wat een reproduceerbare ground truth geeft.
+\end{itemize}
+
+\section{Slide 9. Resultaten op Goat}
+\textbf{Op de deck (tabel):} Recall 100\% (5/5) tegenover 80\% (4/5). Precisie minstens 92,3\% (12/13) tegenover 100\% (4/4). Tijd minder dan 30 seconden tegenover 47 minuten. Reproduceerbaarheid gegarandeerd tegenover reviewer-afhankelijk. ``Het tijdsverschil van factor 90 is reviewer-onafhankelijk.''
+
+\textbf{Achtergrond (Validatie, Resultaten en Precisie):}
+\begin{itemize}
+  \item De scanner produceerde 13 bevindingen: SAST 7 (HIGH 3, MED 1, LOW 3) en fuzzing 6 (HIGH 6). Alle vijf de ground-truth-items werden gedetecteerd, dus recall 100\%.
+  \item Precisie is 12/13, ongeveer 92,3\%. De FINAL-versie legt uit dat een klassieke FP-rate (FP gedeeld door FP plus TN) niet zinvol is in een vuln-scan, omdat true negatives niet zinvol te tellen zijn. De debateerbare vinding is FUZZ-002 op \code{list\_recent\_transactions}.
+  \item Handmatig: 47 minuten, 4 van de 5 gevonden (V5 tool poisoning gemist), 0 false positives, dus precisie 100\% (4/4).
+\end{itemize}
+
+\section{Slide 10. Na indiening: een echte server}
+\textbf{Op de deck:} label ``werk na indiening''. Zowe MCP-server (mainframe, mock-modus). Streamable HTTP, 62 tools. Ongeveer 249 bevindingen. ``Precisie stort in: van 92,3\% op Goat naar bijna nul hier.''
+
+\textbf{Achtergrond (niet in de thesis, sluit aan op Validatie, Beperkingen):}
+\begin{itemize}
+  \item Dit is werk na de indiening, bedoeld om de externe-validiteitsbeperking te toetsen die je zelf benoemt. De thesis stelt al dat de Goat-recall een bovengrens is en de benchmark deels circulair.
+  \item Zowe is de offici\"ele open-source mainframe-MCP-stack, gedraaid in mock-modus zonder z/OS-backend en gescand met je bestaande adapter (uitgebreid met SSE-parsing).
+\end{itemize}
+
+\section{Slide 11. De findings volgen de policy}
+\textbf{Op de deck (tier-tabel):} read(-strict) 31/106/36. update 49/196/62. delete 55/227/74. full 62/249/83. ``De bevindingen schalen met de operator-policy, niet met de beveiligingsstaat.''
+
+\textbf{Achtergrond:}
+\begin{itemize}
+  \item De capability-tier is het echte autorisatiemechanisme van Zowe. Hoe opener de tier, hoe meer tools, hoe meer findings, lineair. Zelfs maximaal dichtgezet blijven er 36 HIGH-meldingen over op read-only tools.
+  \item Oorzaak: jouw heuristieken (SAST-003 en FUZZ-003) zoeken autorisatie in het tool-schema, terwijl Zowe autoriseert op sessie- en transportniveau.
+\end{itemize}
+
+\section{Slide 12. Kritische reflectie}
+\textbf{Op de deck:}
+\begin{itemize}
+  \item Circulaire benchmark: Goat is ontworpen voor de regels, dus 100\% recall is best-case.
+  \item n=1 reviewer: de handmatige vergelijking is illustratief, niet statistisch valide.
+  \item Externe validiteit: hoge recall, lage precisie buiten de benchmark.
+\end{itemize}
+
+\textbf{Achtergrond (Validatie, Beperkingen):}
+\begin{itemize}
+  \item Detectieregels en ground truth zijn niet onafhankelijk, dus 100\% recall generaliseert niet.
+  \item De handmatige procedure is door \'e\'en reviewer in een gecontroleerde omgeving uitgevoerd, wat de statistische zeggingskracht beperkt. De thesis noemt dit bewust illustratief.
+  \item Het reproduceerbaarheidsverschil is inherent (\code{chess2004static}). MCPTox (\code{wang2025mcptox}) wordt genoemd als methodologische referentie.
+\end{itemize}
+
+\section{Slide 13. Aanbevelingen}
+\textbf{Op de deck:}
+\begin{itemize}
+  \item Screeningslaag in CI/CD, geen vervanging van een audit.
+  \item Dwing autorisatie af op elke gevoelige tool.
+  \item Behandel tool-outputs als onvertrouwde invoer.
+  \item Elke run vraagt een menselijke triage.
+\end{itemize}
+
+\textbf{Achtergrond (Conclusie, Aanbevelingen):}
+\begin{itemize}
+  \item ``Het framework vervangt geen security audit. Het verlaagt de drempel om die gericht te voeren.''
+  \item V2 en V3 (ontbrekende autorisatie) zijn het hoogste Fintech-risico, dus authenticatie afdwingen, ongeacht of de aanroeper een mens of een agent is.
+  \item Tool poisoning in \code{fetch\_market\_news} betekent: outputs sanitiseren zoals inputs.
+  \item Een scan onder de 30 seconden maakt CI/CD-integratie haalbaar. Docker verlaagt de drempel.
+\end{itemize}
+
+\section{Slide 14. Conclusie}
+\textbf{Op de deck:} haalbaar en snel, met hoge recall op de doelklasse. De grens, de precisie buiten de benchmark, is even eerlijk in kaart gebracht. Toekomstig werk: MCPTox (45 re\"ele servers).
+
+\textbf{Achtergrond (Conclusie, Kritische reflectie en Toekomstig onderzoek):}
+\begin{itemize}
+  \item De hoofdvraag is beantwoord: geautomatiseerde MCP-assessment is realiseerbaar en sneller dan handmatig, bij vergelijkbare of betere recall.
+  \item De externe validiteit is expliciet beperkt. Goat representeert niet de gemiddelde productieomgeving.
+  \item Drie richtingen voor verder werk: meer en diverse servers (MCPTox, 45 servers en 353 tools, \code{wang2025mcptox}), CI/CD-integratie, en semantische detectie van prompt injection.
+\end{itemize}
+
+\section{Back-up-slides}
+\begin{itemize}
+  \item OWASP MCP Top 10 mapping (correctie op de traceability-tabel die nog LLM07, LLM01 en LLM09 gebruikt): MCP03 tool poisoning, MCP07 autorisatie, MCP02 privilege escalation, Intent Flow Subversion voor prompt injection.
+  \item Zowe-adapter en transport.
+  \item Scope en beperkingen (geen geauthenticeerde scanning, enkel HTTP en SSE, point-in-time).
+\end{itemize}
+
+\end{document}

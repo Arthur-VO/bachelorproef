@@ -1,0 +1,11 @@
+# LaTeX-buildartefacten (output/ wordt al genegeerd door de repo-root)
+*.aux
+*.log
+*.nav
+*.out
+*.snm
+*.synctex.gz
+*.toc
+*.xdv
+*.fdb_latexmk
+*.fls
